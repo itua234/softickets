@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
             },
             allowNull: false
         },
-        balance: {type: DataTypes.INTEGER, allowNull: false}
+        balance: {type: DataTypes.INTEGER, defaultValue: 0}
     },{
         tableName: 'wallets'
     })

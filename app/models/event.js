@@ -1,5 +1,6 @@
 const Sequelize = require('sequelize');
 const dbConfig = require('../../config/db-config');
+const {Op} = require('sequelize');
 const sequelize = new Sequelize(
     dbConfig.DATABASE, 
     dbConfig.USER, 
@@ -39,9 +40,7 @@ module.exports = (sequelize, DataTypes) => {
         description: {type: DataTypes.TEXT, allowNull: false},
         image: {type: DataTypes.STRING, allowNull: false},
         venue: {type: DataTypes.STRING, allowNull: false},
-        isPrivate: {type: DataTypes.BOOLEAN, defaultValue: false},
-        startDate: {type: DataTypes.DATE, allowNull: true},
-        endDate: {type: DataTypes.DATE, allowNull: true}
+        date: {type: DataTypes.DATE, allowNull: true}
     },{
         tableName: 'events'
     })
@@ -73,18 +72,30 @@ module.exports = (sequelize, DataTypes) => {
         as: "transactions"
     });
 
+    Event.addScope('upcoming', {
+        where: {
+            date: {
+                [Op.gt]: Math.floor(Date.now()/1000)
+            }
+        },
+        order: [['date', 'ASC']]
+    });
+    Event.addScope('passed', {
+        where: {
+            date: {
+                [Op.lt]: Math.floor(Date.now()/1000)
+            }
+        }
+    });
+
     Event.prototype.attendees = async function () {
         const event = this.dataValues;
-        let data = await Event.findByPk(event.id, {
-            include:[
-                {
-                    model: User,
-                    as: "attendees"
-                }
-            ],
-            raw: false
+        let attendees = await Attendee.findAll({
+            where: {
+                event_id: event.id
+            }
         })
-        return data.attendees;
+        return attendees;
     }
 
     Event.prototype.transactions = async function () {

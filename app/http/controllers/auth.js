@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const {createAccessToken} = require("../middleware/auth");
-const { sequelize, models: { User, Otp } } = require('../../models');
+const { sequelize, models: { User, Otp, Wallet } } = require('../../models');
 const { generateOtp, sendMail } = require('../../util/helper');
 require('dotenv').config();
 
@@ -23,6 +23,10 @@ exports.register = async(req, res) => {
                 otpable_type: "user",
                 code,
                 purpose: "email_verification"
+            }, {transaction});
+
+            await Wallet.create({ 
+                user_id: user.id
             }, {transaction});
 
             await sendMail({

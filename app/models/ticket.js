@@ -44,9 +44,7 @@ module.exports = (sequelize, DataTypes) => {
             },
             allowNull: false
         },
-        is_free: {type: DataTypes.BOOLEAN, defaultValue: 0},
-        startDate: {type: DataTypes.DATE, allowNull: true},
-        endDate: {type: DataTypes.DATE, allowNull: true}
+        is_free: {type: DataTypes.BOOLEAN, defaultValue: 0}
     },{
         tableName: 'tickets'
     })

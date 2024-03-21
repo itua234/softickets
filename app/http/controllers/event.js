@@ -8,7 +8,7 @@ const { upload } = require('../../services/cloudinary');
 require('dotenv').config();
 
 exports.createEvent = async(req, res) => {
-    const { title, categoryId, description, venue, isPrivate, startDate, endDate } = req.body;
+    const { title, categoryId, description, venue, date } = req.body;
     const {url} = await upload(req.file.path)
 
     let event = await Event.create({
@@ -16,12 +16,10 @@ exports.createEvent = async(req, res) => {
         category_id: categoryId,
         title,
         description, 
-        venue, 
-        isPrivate: parseInt(isPrivate),
+        venue,
         image: url,
         slug: slugify(title),
-        startDate,
-        endDate
+        date
     });
 
     return res.status(200).json({
@@ -46,8 +44,6 @@ exports.createTicket = async(req, res) => {
             currency_id: currency_id,
             is_free: parseInt(is_free),
             image: url
-            //startDate: ticket.startDate,
-            //endDate: ticket.endDate
         });
     //});
 
@@ -139,14 +135,13 @@ exports.deleteTicket = async(req, res) => {
 
 exports.getAllEvents = async(req, res) => {
     let events = await Event.findAll({
-        /*where: {},
         include:[
             {
-                model: User,
-                as: "attendees"
+                model: Ticket,
+                as: "tickets"
             }
         ],
-        raw: false*/
+        raw: false
     });
 
     return res.status(200).json({
@@ -160,15 +155,14 @@ exports.getEvent = async(req, res) => {
     const {slug} = req.params;
     let event = await Event.findOne({
         where: {slug: slug},
-        /*include:[
+        include:[
             {
-                model: User,
-                as: "attendees"
+                model: Ticket,
+                as: "tickets"
             }
         ],
-        raw: false*/
+        raw: false
     });
-    return res.json(await event.transactions());
 
     return res.status(200).json({
         message: 'event details!',
@@ -212,7 +206,7 @@ exports.bookTicket = async(req, res) => {
             
             return res.status(201).json({
                 message: 'Thanks for signing up! Please check your email to complete your registration.',
-                results: user.email,
+                //results: user.email,
                 error: false
             });
         });
