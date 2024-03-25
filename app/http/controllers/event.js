@@ -1,10 +1,12 @@
 const { sequelize, models: { 
     Notification, Transaction,
     Currency, Event, 
-    Ticket, Attendee, 
+    Ticket, Attendee, Order
 } } = require('../../models');
 const { slugify, generateReference, sendMail, useTermii } = require('../../util/helper');
+const { pay, getPaymentData } = require('../../util/payment');
 const { upload } = require('../../services/cloudinary');
+const { escape } = require('querystring');
 require('dotenv').config();
 
 exports.createEvent = async(req, res) => {
@@ -141,6 +143,10 @@ exports.getAllEvents = async(req, res) => {
                 as: "tickets"
             }
         ],
+        order: [
+            ["id", "ASC"],
+            [{ model: Ticket, as: "tickets" }, 'price', 'ASC']
+        ],
         raw: false
     });
 
@@ -161,6 +167,7 @@ exports.getEvent = async(req, res) => {
                 as: "tickets"
             }
         ],
+        order: [[{ model: Ticket, as: "tickets" }, 'price', 'ASC']],
         raw: false
     });
 
@@ -171,11 +178,43 @@ exports.getEvent = async(req, res) => {
     });
 }
 
-exports.bookTicket = async(req, res) => {
-    const {email, firstname, lastname, phone, event_id, ticket_id, amount, quantity } = req.body;
+exports.showEvent = async(req, res) => {
+    const {slug} = req.params;
     let event = await Event.findOne({
-        where: {id: event_id}
+        where: {slug: slug},
+        include:[
+            {
+                model: Ticket,
+                as: "tickets"
+            }
+        ],
+        order: [[{ model: Ticket, as: "tickets" }, 'price', 'ASC']],
+        raw: false
     });
+
+    return res.render('event', {event});
+}
+
+exports.ticketCheckout = async(req, res) => {
+    const { slug } = req.params;
+    const { data } = req.query;
+    const decodedString = decodeURIComponent(data);
+    const parsedObject = JSON.parse(decodedString);
+    const total = parsedObject.reduce((acc, obj) => acc + obj.total, 0);
+
+    let event = await Event.findOne({
+        where: {slug: slug}
+    }); 
+
+    return res.render('checkout', {tickets: parsedObject, total, event});
+}
+
+exports.bookTicket = async(req, res) => {
+    const {eventId} = req.params;
+    const {email, firstname, lastname, phone, tickets, total } = req.body;
+    let event = await Event.findOne({
+        where: {id: eventId}
+    }); 
 
     try{
         await sequelize.transaction(async function(transaction) {
@@ -184,29 +223,35 @@ exports.bookTicket = async(req, res) => {
                 firstname, 
                 lastname,
                 phone,
-                event_id
-            }, {transaction});
-        
-            await Transaction.create({ 
-                attendee_id: attendee.id,
-                event_id,
-                ticket_id,
-                amount,
-                quantity, 
-                total: parseInt(amount) * parseInt(quantity),
-                reference: generateReference(attendee.id)
+                event_id: event.id
             }, {transaction});
 
-            await sendMail({
-                email: attendee.email,
-                subject: event.title,
-                template: "test-mail.ejs",
-                data: attendee
+            let reference = generateReference(attendee.id)
+            let transactions = await Transaction.create({ 
+                attendee_id: attendee.id,
+                event_id: event.id,
+                total: total,
+                reference
+            }, {transaction});
+
+            const createOrderPromises = tickets.map(async(ticket) => {
+                await Order.create({ 
+                    transaction_id: transactions.id,
+                    ticket_id: ticket.id,
+                    amount: ticket.price,
+                    quantity: ticket.quantity,
+                    total: ticket.total,
+                }, {transaction});
             });
-            
-            return res.status(201).json({
-                message: 'Thanks for signing up! Please check your email to complete your registration.',
-                //results: user.email,
+
+            // Wait for all promises to resolve
+            await Promise.all(createOrderPromises);
+
+            const payResult = await pay({"email": email, "amount": total, reference});
+            let result = JSON.parse(payResult);
+            return res.status(200).json({
+                message: 'Payment url generated successfully',
+                results: result.data?.authorization_url,
                 error: false
             });
         });
@@ -214,6 +259,56 @@ exports.bookTicket = async(req, res) => {
         return res.status(500).json({
             message: "could not book ticket, please try again later",
             error: true
+        });
+    }
+}
+
+exports.confirmPayment = async(req, res) => {
+    var { reference } = req.query;
+    var transaction = await Transaction.findOne({
+        where: {reference}
+    });
+
+    if(Object.is(transaction, null)){
+        res.status(422).json({
+            message: 'Order reference verification failed',
+            results: transaction,
+            error: true
+        });
+    }else{
+        getPaymentData(reference)
+        .then(data => {
+            let result = JSON.parse(data);
+            let status = result["data"]["status"];
+
+            async function updateOrder(){
+                if(status == "success"){
+                    transaction.status = result.data.status;
+                    transaction.verified = true;
+                    transaction.received = result["data"]["amount"] / 100;
+                    //await transaction.save();
+
+                    /*await sendMail({
+                        email: attendee.email,
+                        subject: event.title,
+                        template: "test-mail.ejs",
+                        data: attendee
+                    });*/
+
+                    return res.status(200).json({
+                        message: 'Order reference verification successful',
+                        results: transaction,
+                        error: false
+                    });
+                }
+            };
+            updateOrder();
+        }).catch(err => {
+            return res.status(500).json({
+                message: 'Order verification failed',
+                results: err,
+                error: true
+            });
         });
     }
 }

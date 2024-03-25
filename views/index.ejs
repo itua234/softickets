@@ -1,68 +1,64 @@
 <%- include("layout/header.ejs") %>
     <div class="container" style="border:2px solid red">
-        <div class="row">
-            <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5 mb-3">
-                <div class="event-card">
-                    <div class="evt-img-box">
-                        <img src="/images/uploads/event1.jpg" alt="event-img" class="evt-img">
-                    </div>
-                    <div class="">
-                        <h4 class="evt-title">Arts n Women</h4>
-                        <div class="d-flex">
-                            <img alt="" class="calendar" src="/assets/images/icons/headphones.svg" />
-                            <h6 class="evt-date">Wed, Mar 20, 2024</h6>
-                        </div>
-                        <h4 class="evt-price">₦2,000.00 - ₦200000.00</h4>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5 mb-3">
-                <div class="event-card">
-                    <div class="evt-img-box">
-                        <img src="/images/uploads/event1.jpg" alt="event-img" class="evt-img">
-                    </div>
-                    <div class="">
-                        <h4 class="evt-title">Arts n Women</h4>
-                        <div class="d-flex">
-                            <img alt="" class="calendar" src="/assets/images/icons/headphones.svg" />
-                            <h6 class="evt-date">Wed, Mar 20, 2024</h6>
-                        </div>
-                        <h4 class="evt-price">2,000.00 - 200000.00</h4>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5 mb-3">
-                <div class="event-card">
-                    <div class="evt-img-box">
-                        <img src="/images/uploads/event1.jpg" alt="event-img" class="evt-img">
-                    </div>
-                    <div class="">
-                        <h4 class="evt-title">Arts n Women</h4>
-                        <div class="d-flex">
-                            <img alt="" class="calendar" src="/assets/images/icons/headphones.svg" />
-                            <h6 class="evt-date">Wed, Mar 20, 2024</h6>
-                        </div>
-                        <h4 class="evt-price">2,000.00 - 200000.00</h4>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5 mb-3">
-                <div class="event-card">
-                    <div class="evt-img-box">
-                        <img src="/images/uploads/event1.jpg" alt="event-img" class="evt-img">
-                    </div>
-                    <div class="">
-                        <h4 class="evt-title">Arts n Women</h4>
-                        <div class="d-flex">
-                            <img alt="" class="calendar" src="/assets/images/icons/headphones.svg" />
-                            <h6 class="evt-date">Wed, Mar 20, 2024</h6>
-                        </div>
-                        <h4 class="evt-price">2,000.00 - 200000.00</h4>
-                    </div>
-                </div>
-            </div>
-            
+        <div class="row" id="events">
             
         </div>
     </div>
 <%- include("layout/footer.ejs") %>
+    <script src="/assets/libs/jquery/dist/jquery.min.js"></script>
+    <script src="/assets/libs/axios/axios.js"></script>
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <script>
+        let token = $("meta[name='csrf-token']").attr("content");
+        let baseUrl = $("meta[name='base-url']").attr("content");
+        var authToken = localStorage.getItem('adminToken');
+
+        function getPrices(tickets){
+            if(tickets.length < 2){
+                return [
+                    tickets[0]["price"], 
+                    tickets[0]["price"]
+                ];
+            }
+            return [
+                tickets[0]["price"],
+                tickets[tickets.length - 1]["price"]
+            ]
+        }
+
+        function fetchEvents(){
+            axios.get(`${baseUrl}/api/v1/events`)
+            .then((res) => {
+                let events = res.data.results;
+                $("#events").empty();
+                events.forEach(function(event, index){
+                    let prices = getPrices(event.tickets);
+                    $("#events").append(`
+                    <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5 mb-3">
+                        <a href="/${event.slug}">
+                            <div class="event-card">
+                                <div class="evt-img-box">
+                                    <img src="${event.image}" alt="event-img" class="evt-img">
+                                </div>
+                                <div class="">
+                                    <h4 class="evt-title">${event.title}</h4>
+                                    <div class="d-flex">
+                                        <img alt="" class="calendar" src="/assets/images/icons/headphones.svg" />
+                                        <h6 class="evt-date">Wed, Mar 20, 2024</h6>
+                                    </div>
+                                    <h4 class="evt-price">
+                                        ${(prices[0] < 1 && prices[1] < 1) ? "FREE" : ("₦" + prices[0].toFixed(2).toLocaleString() + " - ₦" + prices[1].toFixed(2).toLocaleString())}
+                                    </h4>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    `);
+                })
+            });
+        };
+        fetchEvents();
+    </script>
+</body>
+</html>

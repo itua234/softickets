@@ -23,21 +23,11 @@ module.exports = (sequelize, DataTypes) => {
             },
             allowNull: false
         },
-        ticket_id: {
-            type: DataTypes.BIGINT(20).UNSIGNED, 
-            foreignKey: true,
-            references: {
-                model: {tableName: 'tickets'},
-                key: 'id'
-            },
-            allowNull: false
-        },
-        amount: {type: DataTypes.INTEGER, allowNull: false},
-        quantity: {type: DataTypes.INTEGER, allowNull: false},
         total: {type: DataTypes.INTEGER, allowNull: false},
         reference: {type: DataTypes.STRING, unique: true},
         status: {type: DataTypes.ENUM('pending', 'success', 'failed'), defaultValue: 'pending'},
-        verified: {type: DataTypes.BOOLEAN, defaultValue: 0}
+        verified: {type: DataTypes.BOOLEAN, defaultValue: 0},
+        received: {type: DataTypes.INTEGER, defaultValue: null}
     },{
         tableName: 'transactions'
     })

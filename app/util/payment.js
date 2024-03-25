@@ -3,7 +3,7 @@ require('dotenv').config();
 const secretKey = process.env.PAYSTACK_SECRET;
 const baseUrl = process.env.PAYSTACK_BASEURL;
 
-exports.intitializeTransaction = (details) => {
+exports.pay = (details) => {
     return new Promise((resolve, reject) => {
         const options = {
             hostname: baseUrl,
@@ -29,9 +29,10 @@ exports.intitializeTransaction = (details) => {
         })
         const params = JSON.stringify({
             "email": details["email"],
-            "channels": ["card", "bank", "ussd"],
+            "channels": ["card", "bank", "ussd", "qr"],
             "amount": details["amount"] * 100,
-            "callback_url": "http://127.0.0.1:3000/order-complete/",
+            "reference": details["reference"],
+            "callback_url": "http://127.0.0.1:8080/transaction/verify",
         })
         request.write(params);
         request.end();

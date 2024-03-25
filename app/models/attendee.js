@@ -14,15 +14,6 @@ module.exports = (sequelize, DataTypes) => {
             },
             allowNull: false
         },
-        ticket_id: {
-            type: DataTypes.BIGINT(20).UNSIGNED, 
-            foreignKey: true,
-            references: {
-                model: {tableName: 'tickets'},
-                key: 'id'
-            },
-            allowNull: false
-        },
         firstname: {
             type: DataTypes.STRING,
             allowNull: false,

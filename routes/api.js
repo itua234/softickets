@@ -62,21 +62,24 @@ router.post('/user/', [authGuard, userValidator.updateProfileSchema], user.updat
 router.get('/account/verify/:account/:code', [], wallet.verify_account);
 router.get('/currency', [authGuard], wallet.getCurrencies);
 
-router.route('/event')
+router.route('/events')
 .get(event.getAllEvents)
 .post([authGuard, upload.single('image'), handleMulterError], event.createEvent);
 
-router.route('/event/:slug')
+router.route('/events/:slug')
 .get(event.getEvent)
 //.post([authGuard, upload.array('images', 3), handleMulterError, updateProductSchema], event.update)
 //.delete(event.delete);
 
-router.route('/event/:eventId/ticket')
+router.route('/events/:eventId/ticket')
 .post([authGuard, upload.single('image'), handleMulterError, eventValidator.createTicketSchema], event.createTicket)
 
-router.route('/event/:eventId/ticket/:ticketId')
+router.route('/events/:eventId/ticket/:ticketId')
 .put([authGuard, upload.single('image'), handleMulterError, eventValidator.editTicketSchema], event.editTicket)
 .delete(event.deleteTicket);
+
+router.route('/events/:eventId/book')
+.post([], event.bookTicket)
 
 router.post('/auth/signup', [authValidator.register], auth.register);
 router.get('/auth/email/verify/:email/:code/', [authValidator.verify_email], auth.verify_email);

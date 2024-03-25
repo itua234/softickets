@@ -363,3 +363,13 @@ h1,.h1,h2,.h2,h3,.h3,h4,.h4,h5,.h5,h6,.h6{
     height:20px;
     margin-right: 10px
 }
+
+.quantity{
+    width: 80px;
+    padding-right: 10px;
+    padding-left: 10px;
+    border: 2px solid black
+}
+#submitBtn:disabled{
+    background-color: gray;
+}

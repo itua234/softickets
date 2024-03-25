@@ -57,6 +57,13 @@ if(APP_ENV === "production"){
 }
 
 function useRoutes() {
+    // Define a middleware function to add common variables to response locals
+    app.use((req, res, next) => {
+        const baseUrl = req.protocol + '://' + req.get('host');
+        res.locals.baseUrl = baseUrl;
+        next();
+    });
+
     app.use('', web);
     app.use('/api/v1', api);
 

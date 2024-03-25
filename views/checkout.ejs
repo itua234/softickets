@@ -1,0 +1,162 @@
+<%- include("layout/header.ejs") %>
+    <div class="container">
+        <div class="row justify-content-between" id="event">
+            <div class="col-xl-7 col-lg-8 col-md-6 col-sm-6 mb-3">
+                <div class="">
+                    <h5>Register</h5>
+                    <form id="checkout" action="/api/v1/events" method="POST">
+                        <p>Ticket Information</p>
+                        <div class="container-fluid px-0">
+                            <div class="row">
+                                <div class="col-xl-6 col-lg-6 col-md-12 mb-3">
+                                    <div class="">
+                                        <label>Firstname</label>
+                                        <input 
+                                        name="firstname" 
+                                        class="form-control form-control-border" 
+                                        type="text" 
+                                        id="firstname"
+                                        placeholder="First Name">
+                                        <span class="error"></span>
+                                    </div>
+                                </div>
+                                <div class="col-xl-6 col-lg-6 col-md-12 mb-3">
+                                    <div class="">
+                                        <label>Lastname</label>
+                                        <input 
+                                        name="lastname" 
+                                        class="form-control form-control-border" 
+                                        type="text" 
+                                        id="lastname"
+                                        placeholder="Last Name">
+                                        <span class="error"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-xl-6 col-lg-6 col-md-12 mb-3">
+                                    <div class="">
+                                        <label>Email Address</label>
+                                        <input 
+                                        name="email" 
+                                        class="form-control form-control-border" 
+                                        type="email"
+                                        id="email" 
+                                        placeholder="Email Address">
+                                        <span class="error"></span>
+                                    </div>
+                                </div>
+                                <div class="col-xl-6 col-lg-6 col-md-12">
+                                    <div class="">
+                                        <label>Phone Number</label>
+                                        <input 
+                                        name="phone" 
+                                        class="form-control form-control-border" 
+                                        type="text" 
+                                        id="phone"
+                                        placeholder="+234">
+                                        <span class="error"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 mb-3">
+                <div class="px-3 pt-2 pb-4"  style="border:2px solid black;">
+                    <h5>Order Summary</h5>
+                    <% tickets.forEach(ticket => { %>
+                        <div class="d-flex justify-content-between mb-4">
+                            <h6><%= ticket.quantity+ " x " +ticket.name %></h6>
+                            <span><%= (ticket.total.toFixed(2) < 1) ? "FREE" : ticket.total %></span>
+                        </div>
+                    <% }); %>
+                    <div class="mb-2 d-flex justify-content-between">
+                        <h6>Subtotal</h6>
+                        <span><%= (total.toFixed(2) < 1) ? "FREE" : total %></span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <h6>Total</h6>
+                        <span><%= (total.toFixed(2) < 1) ? "FREE" : total %></span>
+                    </div>
+                </div>
+                <div class="">
+                    <button 
+                    id="submitBtn"
+                    type="button" 
+                    disabled
+                    class="btn btn-primary w-100 mt-3 rounded-all">Buy Tickets</button>
+                </div>
+            </div>
+        </div>
+    </div>
+<%- include("layout/footer.ejs") %>
+    <script src="/assets/libs/jquery/dist/jquery.min.js"></script>
+    <script src="/assets/libs/axios/axios.js"></script>
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <script>
+        let token = $("meta[name='csrf-token']").attr("content");
+        let baseUrl = $("meta[name='base-url']").attr("content");
+        var authToken = localStorage.getItem('adminToken');
+
+        $(document).ready(function() {
+            // Attach input event listener to all input fields
+            $('input[type="text"], input[type="email"]').on('input', function() {
+                // Check if all input fields have a value
+                var allFilled = $('input[type="text"]').toArray().every(function(input) {
+                    return $(input).val().trim() !== '';
+                }) && $('input[type="email').val().trim() !== ''; // Check email field
+                
+                // Enable or disable submit button based on input fields' status
+                $('#submitBtn').prop('disabled', !allFilled);
+            });
+
+            $('#submitBtn').on("click", function(event){
+                event.preventDefault();
+                $(".error").text("");
+                var url = $('#checkout').attr('action');
+                url+="/" + "<%= event.id %>" + "/book";
+                const urlParams = new URLSearchParams(window.location.search);
+                const tickets = JSON.parse(urlParams.get('data'));
+
+                const inputs = {
+                    email: $("#email").val(),
+                    firstname: $("#firstname").val(),
+                    lastname: $("#lastname").val(),
+                    phone: $("#phone").val(),
+                    tickets: tickets,
+                    total: parseInt('<%= total %>')
+                };
+                const config = {
+                    headers: {
+                        "Accept": "application/json",
+                        "Content-Type": "application/json"
+                    }
+                };
+                axios.post(url, inputs, config)
+                .then((res) => {
+                    let url = res.data.results;
+                    console.log(url);
+                    window.location.href = url;
+                }).catch(function(error){
+                    let errors = error.response.data.error;
+                    if(errors.firstname){
+                        $(".error").eq(0).text(errors.firstname);
+                    }
+                    if(errors.lastname){
+                        $(".error").eq(1).text(errors.lastname);
+                    }
+                    if(errors.email){
+                        $(".error").eq(2).text(errors.email);
+                    }
+                    if(errors.phone){
+                        $(".error").eq(3).text(errors.phone);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
