@@ -247,6 +247,18 @@ exports.bookTicket = async(req, res) => {
             // Wait for all promises to resolve
             await Promise.all(createOrderPromises);
 
+            if(total == 0){
+                /*transactions.status = "success";
+                transactions.verified = true;
+                transactions.received = total;
+                await transactions.save();*/
+
+                return res.status(200).json({
+                    message: 'Ticket has been sent successfully',
+                    //results: result.data?.authorization_url,
+                    error: false
+                });
+            }
             const payResult = await pay({"email": email, "amount": total, reference});
             let result = JSON.parse(payResult);
             return res.status(200).json({
