@@ -71,6 +71,16 @@ module.exports = {
         } else {
             next();
         }
-        next();
+    },
+
+    checkSession: (req, res, next) => {
+        // Check if session exists
+        if (req.session && req.session.user) {
+            // Session exists, proceed to the next middleware or route handler
+            next();
+        } else {
+            // Session doesn't exist, redirect to login page or handle unauthorized access
+            return res.redirect('/login'); // Redirect to login page
+        }
     }
 }

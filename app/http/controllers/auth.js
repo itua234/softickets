@@ -6,14 +6,16 @@ const { generateOtp, sendMail } = require('../../util/helper');
 require('dotenv').config();
 
 exports.register = async(req, res) => {
-    const { email, name, password } = req.body;
+    const { email, firstname, lastname, password, country } = req.body;
+    let fullname = firstname+" "+lastname;
     
     try{
         await sequelize.transaction(async function(transaction) {
             const user = await User.create({
                 email, 
-                name, 
+                name: fullname, 
                 password,
+                country,
                 referral_code: generateOtp()
             }, {transaction});
         
@@ -69,9 +71,11 @@ exports.login = async(req, res) => {
     }else{
         //create token
         const token = createAccessToken(user);
+        req.session.user = Object.assign(user, {token: token});
+        console.log(Object.assign(user, {token: token}));
         res.status(200).json({
             message: 'Login successful',
-            results: token,
+            results: {token, redirect: "/dashboard"},
             error: false
         });
     }
@@ -92,6 +96,14 @@ exports.logout = (req, res) => {
             expiresIn: '1s',
         }
     );
+
+    /*req.session.destroy((err) => {
+        if (err) {
+            console.error('Error destroying session:', err);
+        } else {
+            res.redirect('/login'); // Redirect to login page after logout
+        }
+    });*/
    
     return res.status(200).json({
         message: 'You have been logged out',

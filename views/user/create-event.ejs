@@ -1,0 +1,151 @@
+<%- include("layout/header.ejs") %>
+        <section class="" style="margin-top:80px">
+            <div class="container">
+                <div class="row">
+                    <ul class="col-xl-3 col-lg-3 col-md-4 list-unstyled">
+                        <li><a href="/myaccount" class="dashboard-list-link d-flex align-items-center text-decoration-none"><img alt="" class="w-h-25 m-r-10" src="/assets/images/icons/dashboard.svg" />DASHBOARD</a></li>
+                        <li><a href="/orders" class="dashboard-list-link d-flex align-items-center text-decoration-none"><img alt="" class="w-h-25 m-r-10" src="/assets/images/icons/dashboard.svg" />EVENTS</a></li>
+                        <li><a href="#" class="dashboard-list-link d-flex align-items-center text-decoration-none"><img alt="" class="w-h-25 m-r-10" src="/assets/images/icons/dashboard.svg" />DOWNLOADS</a></li>
+                        <li><a href="/address" class="dashboard-list-link d-flex align-items-center text-decoration-none"><img alt="" class="w-h-25 m-r-10" src="/assets/images/icons/cloud-computing.svg" />ADDRESSES</a></li>
+                        <li><a href="/payment-cards" class="dashboard-list-link d-flex align-items-center text-decoration-none"><img alt="" class="w-h-25 m-r-10" src="/assets/images/icons/dashboard.svg" />PAYMENT METHODS</a></li>
+                        <li><a href="/edit-account" class="dashboard-list-link d-flex align-items-center text-decoration-none"><img alt="" class="w-h-25 m-r-10" src="/assets/images/icons/User2.svg" />ACCOUNT DETAILS</a></li>
+                        <li><a href="/logout" class="dashboard-list-link d-flex align-items-center text-decoration-none"><img alt="" class="w-h-25 m-r-10" src="/assets/images/icons/logout.svg" />LOGOUT</a></li>
+                    </ul>
+                    <div class="col-xl-9 col-lg-9 col-md-8">
+                        <form id="create-event" action="/api/v1/events" method="POST" enctype="multipart/form-data">
+                            <div class="row">
+                                <div class="col">
+                                    <label for="" style="font-weight:bold;font-size:14px">Title <span style="color:red">*</span></label>
+                                    <input 
+                                    type="text" 
+                                    id="title"
+                                    name="title"
+                                    class="form-control form-control-border" />
+                                    <span class="error"> </span>
+                                </div>
+                                <div class="col">
+                                    <label for="" style="font-weight:bold;font-size:14px">Venue <span style="color:red">*</span></label>
+                                    <input 
+                                    type="text" 
+                                    id="venue"
+                                    name="venue"
+                                    class="form-control form-control-border" />
+                                    <span class="error"> </span>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-column" style="margin-top:15px">
+                                <label for="">Description <span style="color:red">*</span></label>
+                                <textarea
+                                id="description"
+                                name="description"
+                                class="form-control form-control-border">
+                                </textarea>
+                                <span class="error"> </span>
+                            </div>
+                            <div class="row"  style="margin-top:15px">
+                                <div class="col">
+                                    <label for="" style="font-weight:bold;font-size:14px">Category <span style="color:red">*</span></label>
+                                    <select
+                                    name="categoryId"
+                                    placeholder="category" 
+                                    id="categoryId"
+                                    class="form-control form-control-border">
+                                        <option value="1" selected>Nigeria</option>
+                                    </select>
+                                    <span class="error"> </span>
+                                </div>
+                                <div class="col">
+                                    <label for="" style="font-weight:bold;font-size:14px">Date <span style="color:red">*</span></label>
+                                    <input 
+                                    type="text" 
+                                    id="date"
+                                    name="date"
+                                    placeholder="Select Date and Time"
+                                    class="form-control form-control-border" />
+                                    <span class="error"> </span>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-column" style="margin-top:15px">
+                                <label for="">Image <span style="color:red">*</span></label>
+                                <input
+                                type="file"
+                                id="image"
+                                name="image"
+                                class="form-control form-control-border" />
+                                <span class="error"> </span>
+                            </div>
+
+                            <div class="d-flex justify-content-end m-t-20 pos-relative">
+                                <button 
+                                type="submit"
+                                id="submitBtn"
+                                class="btn btn-primary rounded-all w-100">
+                                    Sign Up
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+        <script src="/assets/libs/jquery/dist/jquery.min.js"></script>
+        <script src="/assets/libs/axios/axios.js"></script>
+        <script>
+            flatpickr('#date', {
+                enableTime: true,
+                dateFormat: "Y-m-d H:i"
+            });
+
+            $("#create-event").on("submit", function(event){
+                event.preventDefault();
+                let btn = $(this).find("button[type='submit']");
+                btn.html(`<img src="/assets/images/loader.gif" id="loader-gif">`);
+                var form = event.target;
+                var url = form.action;
+                var formData = new FormData(form);
+                $('.error').text('');
+                alert(JSON.stringify(formData));
+
+                const config = {
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "multipart/form-data",
+                        "Authorization": "Bearer "+"<%= user.token %>"
+                    }
+                };
+                axios.post(url, formData, config)
+                .then(function(response){
+                    let message = response.data.message;
+                    console.log(response.data);
+                    //toast(message);
+                    btn.attr("disabled", false);
+                    btn.text("Save");
+                })
+                .catch(function(error){
+                    let errors = error.response.data.error;
+                    if(errors.title){
+                        $('.error').eq(0).text(errors.title);
+                    }
+                    if(errors.venue){
+                        $('.error').eq(1).text(errors.venue);
+                    }
+                    if(errors.description){
+                        $('.error').eq(2).text(errors.description);
+                    }
+                    if(errors.categoryId){
+                        $('.error').eq(3).text(errors.categoryId);
+                    }
+                    if(errors.date){
+                        $('.error').eq(4).text(errors.date);
+                    }
+                    if(errors.image){
+                        $('.error').eq(5).text(errors.image);
+                    }
+                    btn.attr("disabled", false);
+                    btn.text("Save");
+                });
+            })
+        </script>
+    </body>
+</html>

@@ -28,15 +28,16 @@ app.use(session({
     key: "user_sid",
     secret: process.env.APP_TOKEN,
     resave: false,
-    saveUninitialized: false,
-    cookie: {
+    saveUninitialized: true,
+    /*cookie: {
         //expires: 600000,
         secure: false,
         httpOnly: true,
         maxAge: null
-    }
+    }*/
 }));
 app.use(cookieParser());
+//app.use(csurf("123456789iamasecret987654321look"));
 
 const { PORT, APP_ENV } = process.env; 
 
@@ -60,7 +61,9 @@ function useRoutes() {
     // Define a middleware function to add common variables to response locals
     app.use((req, res, next) => {
         const baseUrl = req.protocol + '://' + req.get('host');
+        //const csrfToken = req.csrfToken();
         res.locals.baseUrl = baseUrl;
+        //res.locals.csrfToken = csrfToken;
         next();
     });
 

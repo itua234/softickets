@@ -1,4 +1,5 @@
 const express = require('express');
+const crypto = require("crypto");
 const router = express.Router();
 const auth = require('../app/http/controllers/auth');
 const user = require('../app/http/controllers/user');
@@ -64,7 +65,7 @@ router.get('/currency', [authGuard], wallet.getCurrencies);
 
 router.route('/events')
 .get(event.getAllEvents)
-.post([authGuard, upload.single('image'), handleMulterError], event.createEvent);
+.post([authGuard, upload.single('image'), handleMulterError, eventValidator.createEventSchema], event.createEvent);
 
 router.route('/events/:slug')
 .get(event.getEvent)

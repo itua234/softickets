@@ -1,0 +1,61 @@
+<%- include("layout/header.ejs") %>
+        <section class="" style="margin-top:80px">
+            <div class="container">
+                <div class="row">
+                    <ul class="col-xl-3 col-lg-3 col-md-4 list-unstyled">
+                        <li><a href="/myaccount" class="dashboard-list-link d-flex align-items-center text-decoration-none"><img alt="" class="w-h-25 m-r-10" src="/assets/images/icons/dashboard.svg" />DASHBOARD</a></li>
+                        <li><a href="/orders" class="dashboard-list-link d-flex align-items-center text-decoration-none"><img alt="" class="w-h-25 m-r-10" src="/assets/images/icons/dashboard.svg" />EVENTS</a></li>
+                        <li><a href="#" class="dashboard-list-link d-flex align-items-center text-decoration-none"><img alt="" class="w-h-25 m-r-10" src="/assets/images/icons/dashboard.svg" />DOWNLOADS</a></li>
+                        <li><a href="/address" class="dashboard-list-link d-flex align-items-center text-decoration-none"><img alt="" class="w-h-25 m-r-10" src="/assets/images/icons/cloud-computing.svg" />ADDRESSES</a></li>
+                        <li><a href="/payment-cards" class="dashboard-list-link d-flex align-items-center text-decoration-none"><img alt="" class="w-h-25 m-r-10" src="/assets/images/icons/dashboard.svg" />PAYMENT METHODS</a></li>
+                        <li><a href="/edit-account" class="dashboard-list-link d-flex align-items-center text-decoration-none"><img alt="" class="w-h-25 m-r-10" src="/assets/images/icons/User2.svg" />ACCOUNT DETAILS</a></li>
+                        <li><a href="/logout" class="dashboard-list-link d-flex align-items-center text-decoration-none"><img alt="" class="w-h-25 m-r-10" src="/assets/images/icons/logout.svg" />LOGOUT</a></li>
+                    </ul>
+                    <div class="col-xl-9 col-lg-9 col-md-8">
+                        <form id="" action="" method="POST">
+                            <div class="row">
+                                <div class="col">
+                                    <label for="" style="font-weight:bold;font-size:14px">Name <span style="color:red">*</span></label>
+                                    <input 
+                                    type="text" 
+                                    value="<%= user.name %>"
+                                    name="name"
+                                    class="form-control form-control-border" />
+                                    <span class="error"> </span>
+                                </div>
+                                <div class="col">
+                                    <label for="" style="font-weight:bold;font-size:14px">Phone <span style="color:red">*</span></label>
+                                    <input 
+                                    type="text" 
+                                    value="<%= user.phone %>"
+                                    name="phone"
+                                    class="form-control form-control-border" />
+                                    <span class="error"> </span>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-column" style="font-weight:bold;font-size:14px;margin-top:15px">
+                                <label for="">Country <span style="color:red">*</span></label>
+                                <input 
+                                type="text" 
+                                value="<%= user.country %>"
+                                name="country"
+                                class="form-control form-control-border" />
+                                <span class="error"> </span>
+                            </div>
+                            <div class="d-flex flex-column border-danger" style="margin-top:15px;font-weight:bold;font-size:14px">
+                                <label for="">Email address <span style="color:red">*</span></label>
+                                <input 
+                                type="email" 
+                                value="<%= user.email %>"
+                                name="email"
+                                disabled
+                                class="form-control form-control-border" />
+                                <span class="error"> </span>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </body>
+</html>

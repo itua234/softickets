@@ -73,6 +73,29 @@ niv.extendMessages({
 
 //export the schemas
 module.exports = {
+    createEventSchema: async(req, res, next) => {
+        req.body.image = req.file || {};
+        const v = new niv.Validator(req.body, {
+            title: 'required|string',
+            venue: 'required|string',
+            description: 'required|string',
+            date: 'required|string',
+            categoryId: 'required|numeric',
+            image: 'required|mime:jpeg,jpg,svg,png,pdf|size:2mb'
+        }, {'categoryId.numeric': "The category field is required"});
+
+        let matched = await v.check();
+        if(!matched){
+            let errors = v.errors;
+            returnValidationError(errors, res, "failed to create new ticket");
+        }else{
+            if(!req.value){
+                req.value = {}
+            }
+            req.body = v.inputs;
+            next();
+        }
+    },
     createTicketSchema: async(req, res, next) => {
         req.body.image = req.file || {};
         const v = new niv.Validator(req.body, {

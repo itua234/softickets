@@ -76,7 +76,9 @@ module.exports = {
     register: async(req, res, next) => {
         const v = new niv.Validator(req.body, {
             email: 'required|string|email|unique:users,email',
-            name: 'required|string',
+            firstname: 'required|string',
+            lastname: 'required|string',
+            country: 'required|string',
             password: 'required|string|minLength:8|hasSpecialCharacter|containsNumber',
         });
 
