@@ -34,7 +34,7 @@ module.exports = (sequelize, DataTypes) => {
         price: {type: DataTypes.INTEGER, defaultValue: 0},
         quantity: {type: DataTypes.INTEGER, defaultValue: 0},
         purchase_limit: {type: DataTypes.INTEGER, defaultValue: 0},
-        image: {type: DataTypes.STRING, allowNull: false},
+        //image: {type: DataTypes.STRING, allowNull: false},
         currency_id: {
             type: DataTypes.BIGINT(20).UNSIGNED,
             foreignKey: true,

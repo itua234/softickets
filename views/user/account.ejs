@@ -2,15 +2,7 @@
         <section class="" style="margin-top:80px">
             <div class="container">
                 <div class="row">
-                    <ul class="col-xl-3 col-lg-3 col-md-4 list-unstyled">
-                        <li><a href="/myaccount" class="dashboard-list-link d-flex align-items-center text-decoration-none"><img alt="" class="w-h-25 m-r-10" src="/assets/images/icons/dashboard.svg" />DASHBOARD</a></li>
-                        <li><a href="/orders" class="dashboard-list-link d-flex align-items-center text-decoration-none"><img alt="" class="w-h-25 m-r-10" src="/assets/images/icons/dashboard.svg" />EVENTS</a></li>
-                        <li><a href="#" class="dashboard-list-link d-flex align-items-center text-decoration-none"><img alt="" class="w-h-25 m-r-10" src="/assets/images/icons/dashboard.svg" />DOWNLOADS</a></li>
-                        <li><a href="/address" class="dashboard-list-link d-flex align-items-center text-decoration-none"><img alt="" class="w-h-25 m-r-10" src="/assets/images/icons/cloud-computing.svg" />ADDRESSES</a></li>
-                        <li><a href="/payment-cards" class="dashboard-list-link d-flex align-items-center text-decoration-none"><img alt="" class="w-h-25 m-r-10" src="/assets/images/icons/dashboard.svg" />PAYMENT METHODS</a></li>
-                        <li><a href="/edit-account" class="dashboard-list-link d-flex align-items-center text-decoration-none"><img alt="" class="w-h-25 m-r-10" src="/assets/images/icons/User2.svg" />ACCOUNT DETAILS</a></li>
-                        <li><a href="/logout" class="dashboard-list-link d-flex align-items-center text-decoration-none"><img alt="" class="w-h-25 m-r-10" src="/assets/images/icons/logout.svg" />LOGOUT</a></li>
-                    </ul>
+                    <%- include("layout/sidebar.ejs") %>
                     <div class="col-xl-9 col-lg-9 col-md-8">
                         <form id="" action="" method="POST">
                             <div class="row">
@@ -57,5 +49,7 @@
                 </div>
             </div>
         </section>
+        <script src="/assets/libs/jquery/dist/jquery.min.js"></script>
+        <script src="/assets/js/user-sidebar.js"></script>
     </body>
 </html>

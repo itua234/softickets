@@ -31,6 +31,7 @@
             axios.get(`${baseUrl}/api/v1/events`)
             .then((res) => {
                 let events = res.data.results;
+                alert(events.length);
                 $("#events").empty();
                 events.forEach(function(event, index){
                     let prices = getPrices(event.tickets);

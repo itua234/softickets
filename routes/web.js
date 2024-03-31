@@ -9,15 +9,20 @@ router.get("/", function(req, res){
     res.render('index');
 });
 
+router.get("/success", function(req, res){
+    res.render('success');
+});
+
 router.get("/dashboard", [checkSession, function(req, res){
     res.render('user/index', { user: req.session.user });
 }]);
 router.get("/dashboard/account", [checkSession, function(req, res){
     res.render('user/account', { user: req.session.user });
 }]);
-router.get("/dashboard/create-event", [checkSession, function(req, res){
-    res.render('user/create-event', { user: req.session.user });
-}]);
+router.get("/dashboard/events", [checkSession, event.showEvents]);
+router.get("/dashboard/events/create", [checkSession, event.showCreateEventForm]);
+
+router.get("/dashboard/:uuid/ticket/manage", [checkSession, event.showEventTickets]);
 
 router.route('/login')
 .get([isGuest], function(req, res){

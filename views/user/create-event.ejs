@@ -2,20 +2,12 @@
         <section class="" style="margin-top:80px">
             <div class="container">
                 <div class="row">
-                    <ul class="col-xl-3 col-lg-3 col-md-4 list-unstyled">
-                        <li><a href="/myaccount" class="dashboard-list-link d-flex align-items-center text-decoration-none"><img alt="" class="w-h-25 m-r-10" src="/assets/images/icons/dashboard.svg" />DASHBOARD</a></li>
-                        <li><a href="/orders" class="dashboard-list-link d-flex align-items-center text-decoration-none"><img alt="" class="w-h-25 m-r-10" src="/assets/images/icons/dashboard.svg" />EVENTS</a></li>
-                        <li><a href="#" class="dashboard-list-link d-flex align-items-center text-decoration-none"><img alt="" class="w-h-25 m-r-10" src="/assets/images/icons/dashboard.svg" />DOWNLOADS</a></li>
-                        <li><a href="/address" class="dashboard-list-link d-flex align-items-center text-decoration-none"><img alt="" class="w-h-25 m-r-10" src="/assets/images/icons/cloud-computing.svg" />ADDRESSES</a></li>
-                        <li><a href="/payment-cards" class="dashboard-list-link d-flex align-items-center text-decoration-none"><img alt="" class="w-h-25 m-r-10" src="/assets/images/icons/dashboard.svg" />PAYMENT METHODS</a></li>
-                        <li><a href="/edit-account" class="dashboard-list-link d-flex align-items-center text-decoration-none"><img alt="" class="w-h-25 m-r-10" src="/assets/images/icons/User2.svg" />ACCOUNT DETAILS</a></li>
-                        <li><a href="/logout" class="dashboard-list-link d-flex align-items-center text-decoration-none"><img alt="" class="w-h-25 m-r-10" src="/assets/images/icons/logout.svg" />LOGOUT</a></li>
-                    </ul>
-                    <div class="col-xl-9 col-lg-9 col-md-8">
-                        <form id="create-event" action="/api/v1/events" method="POST" enctype="multipart/form-data">
+                    <%- include("layout/sidebar.ejs") %>
+                    <div class="col-xl-9 col-lg-9 col-md-8 pb-4">
+                        <form id="create-event" class="" action="/api/v1/events" method="POST" enctype="multipart/form-data">
                             <div class="row">
                                 <div class="col">
-                                    <label for="" style="font-weight:bold;font-size:14px">Title <span style="color:red">*</span></label>
+                                    <label for="" style="font-weight:bold;font-size:14px">Event Name <span style="color:red">*</span></label>
                                     <input 
                                     type="text" 
                                     id="title"
@@ -24,7 +16,7 @@
                                     <span class="error"> </span>
                                 </div>
                                 <div class="col">
-                                    <label for="" style="font-weight:bold;font-size:14px">Venue <span style="color:red">*</span></label>
+                                    <label for="" style="font-weight:bold;font-size:14px">Event Venue <span style="color:red">*</span></label>
                                     <input 
                                     type="text" 
                                     id="venue"
@@ -34,23 +26,25 @@
                                 </div>
                             </div>
                             <div class="d-flex flex-column" style="margin-top:15px">
-                                <label for="">Description <span style="color:red">*</span></label>
+                                <label for="" style="font-weight:bold;font-size:14px">Please describe your event <span style="color:red">*</span></label>
                                 <textarea
                                 id="description"
                                 name="description"
-                                class="form-control form-control-border">
-                                </textarea>
+                                placeholder="About event"
+                                class="form-control form-control-border"></textarea>
                                 <span class="error"> </span>
                             </div>
                             <div class="row"  style="margin-top:15px">
                                 <div class="col">
-                                    <label for="" style="font-weight:bold;font-size:14px">Category <span style="color:red">*</span></label>
+                                    <label for="" style="font-weight:bold;font-size:14px">Choose a category for your event. <span style="color:red">*</span></label>
                                     <select
                                     name="categoryId"
                                     placeholder="category" 
                                     id="categoryId"
                                     class="form-control form-control-border">
-                                        <option value="1" selected>Nigeria</option>
+                                        <% categories.forEach(category => { %>
+                                            <option value="<%= category.id %>"><%= category.name %></option>
+                                        <% }); %>
                                     </select>
                                     <span class="error"> </span>
                                 </div>
@@ -65,31 +59,56 @@
                                     <span class="error"> </span>
                                 </div>
                             </div>
-                            <div class="d-flex flex-column" style="margin-top:15px">
-                                <label for="">Image <span style="color:red">*</span></label>
-                                <input
-                                type="file"
-                                id="image"
-                                name="image"
-                                class="form-control form-control-border" />
+                            
+                            <div class="" style="margin-top:15px">
+                                <label for="" style="font-weight:bold;font-size:14px">Add a few images to your event banner. <span style="color:red">*</span></label>
+                                <label class="file-label d-flex align-items-center justify-content-center" for="image">
+                                    <img src="/assets/images/icons/upload.svg" />Choose Files To Upload
+                                </label>
+                                <input type="file" class="form-control" name="image" id="image" multiple>
                                 <span class="error"> </span>
                             </div>
+                            <div id="imagePreviewBox" class="d-flex"></div>
+                            <div id="totalImages">
+                                <span>0</span> file(s) selected
+                            </div>
 
-                            <div class="d-flex justify-content-end m-t-20 pos-relative">
+                            <div class="d-flex justify-content-center m-t-20 pos-relative">
+                                <button 
+                                type="button"
+                                id="prevBtn"
+                                class="btn btn-primary rounded-all mr-3">
+                                    Previous
+                                </button>
                                 <button 
                                 type="submit"
                                 id="submitBtn"
-                                class="btn btn-primary rounded-all w-100">
-                                    Sign Up
+                                class="btn btn-primary rounded-all">
+                                    Next
                                 </button>
                             </div>
                         </form>
+                        <div class="d-none" id="create-ticket-box">
+                            <h5>Let's create Tickets</h5>
+                            <span>Click the create ticket button to add a new ticket</span>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <h6>Tickets(0)</h6>
+                                <button class="btn btn-primary" type="button" data-toggle="modal" data-target="#createTicketModal">Create Ticket</button>
+                            </div>
+                            <%- include("modal/create-ticket-modal.ejs") %>
+                            <div id="ticket-box">
+
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
         <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
         <script src="/assets/libs/jquery/dist/jquery.min.js"></script>
+        <script src="/assets/js/slim.min.js"></script>
+        <script src="/assets/js/popper.min.js"></script>
+        <script src="/assets/js/bootstrap.min.js"></script>
         <script src="/assets/libs/axios/axios.js"></script>
         <script>
             flatpickr('#date', {
@@ -103,9 +122,16 @@
                 btn.html(`<img src="/assets/images/loader.gif" id="loader-gif">`);
                 var form = event.target;
                 var url = form.action;
-                var formData = new FormData(form);
+                //var formData = new FormData(form);
                 $('.error').text('');
-                alert(JSON.stringify(formData));
+                let inputs = {
+                    title: $("#title").val(),
+                    venue: $("#venue").val(),
+                    description: $("#description").val(),
+                    categoryId: $("#categoryId").val(),
+                    date: $("#date").val(),
+                    image: $('#image')[0].files.length > 0 ? $('#image')[0].files[0] : {}
+                };
 
                 const config = {
                     headers: {
@@ -114,13 +140,15 @@
                         "Authorization": "Bearer "+"<%= user.token %>"
                     }
                 };
-                axios.post(url, formData, config)
+                axios.post(url, inputs, config)
                 .then(function(response){
                     let message = response.data.message;
                     console.log(response.data);
-                    //toast(message);
+                    $("#create-ticket #event_id").val(response.data.results.id);
                     btn.attr("disabled", false);
                     btn.text("Save");
+                    $("#create-event").addClass("d-none");
+                    $("#create-ticket-box").removeClass("d-none");
                 })
                 .catch(function(error){
                     let errors = error.response.data.error;
@@ -144,6 +172,146 @@
                     }
                     btn.attr("disabled", false);
                     btn.text("Save");
+                });
+            })
+
+            //Preview the images before uploading
+            $("#image").change(function(event){
+                $("#imagePreviewBox").empty();
+                var inputs = event.target.files;
+                var filesAmount = inputs.length;
+                $("#totalImages span").text(inputs.length);
+                
+                for(let i=0; i<filesAmount; i++){
+                    var reader = new FileReader();
+                    //convert each image file to a string
+                    reader.readAsDataURL(inputs[i]);
+
+                    //fileReader will emit the load event when the dataURL is ready
+                    //Access the string using reader.result inside the callback function
+                    reader.onload = function(e){
+                        $("#imagePreviewBox").append(`
+                        <div style="position:relative;margin-right:25px;">
+                            <img src=${e.target.result}  style="height:60px;width:60px;">
+                            <span id="removePreview" data-name=${inputs[i].name}>
+                            x
+                            </span>
+                        </div>
+                        `);
+                    }
+                }
+            });
+
+            //delete selected file from an array of file inputs
+            $(document).on("click", "#removePreview", function(event){
+                //event.preventDefault();
+                const filteredFiles = new DataTransfer();
+                const fileName = $(this).data("name");
+                let files = $("#image").prop("files");
+                
+                for(var i=0; i<files.length; i++){
+                    if(files[i].name !== fileName){
+                        filteredFiles.items.add(files[i]); //here you exclude the file. thus removing it.
+                    }
+                }
+
+                //update the input with the new filelist;
+                $("#image").prop("files", filteredFiles.files);  //Assign the updates list
+                $("#totalImages span").text(filteredFiles.files.length);
+                $(this).parent().remove();
+            });
+
+            function appendTicket(ticket){
+                $("#ticket-box").append(`
+                    <div class="mt-3 p-2" style="border:2px solid gray">
+                        <div class="d-flex justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="d-flex align-items-center justify-content-center mr-2 ticket-round">
+                                    <img src="/assets/images/icons/upload.svg" />
+                                </div>
+                                <div class="d-flex flex-column">
+                                    <span>${ticket.name} - #${ticket.price}</span>
+                                    <span>${ticket.createdAt}</span>
+                                </div>
+                            </div>
+                            <a class=""><img src="/assets/images/icons/upload.svg" /></a>
+                        </div>
+                        <div class="d-flex justify-content-around mt-2">
+                            <div class="d-flex align-items-center">
+                                <div class="d-flex align-items-center justify-content-center mr-2 ticket-round">
+                                    <img src="/assets/images/icons/upload.svg" />
+                                </div>
+                                <div class="d-flex flex-column">
+                                    <span>Total tickets</span>
+                                    <span>${ticket.quantity}</span>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="d-flex align-items-center justify-content-center mr-2 ticket-round">
+                                    <img src="/assets/images/icons/upload.svg" />
+                                </div>
+                                <div class="d-flex flex-column">
+                                    <span>Per customer</span>
+                                    <span>${ticket.purchase_limit}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `)
+            };
+
+            $("#create-ticket").on("submit", function(event){
+                event.preventDefault();
+                let btn = $(this).find("button[type='submit']");
+                btn.html(`<img src="/assets/images/loader.gif" id="loader-gif">`);
+                var form = event.target;
+                var url = form.action+$("#create-ticket #event_id").val()+"/ticket";
+                $('.error').text('');
+                let inputs = {
+                    name: $("#create-ticket #name").val(),
+                    quantity: $("#create-ticket #quantity").val(),
+                    price: $("#create-ticket #price").val(),
+                    purchase_limit: $("#create-ticket #purchase_limit").val(),
+                    currency_id: $("#create-ticket #currency_id").val(),
+                    is_free: ($("#create-ticket #price").val() == 0) ? 1 : 0
+                };
+
+                const config = {
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer "+"<%= user.token %>"
+                    }
+                };
+                axios.post(url, inputs, config)
+                .then(function(response){
+                    let message = response.data.message;
+                    console.log(response.data);
+                    appendTicket(response.data.results);
+                    btn.attr("disabled", false);
+                    btn.text("Save Ticket");
+                    $("#createTicketModal").modal('hide');
+                    $("#create-ticket #name").val("");
+                })
+                .catch(function(error){
+                    let errors = error.response.data.error;
+                    if(errors.name){
+                        $('#create-ticket .error').eq(0).text(errors.name);
+                    }
+                    if(errors.quantity){
+                        $('#create-ticket .error').eq(1).text(errors.quantity);
+                    }
+                    if(errors.purchase_limit){
+                        $('#create-ticket .error').eq(2).text(errors.purchase_limit);
+                    }
+                    if(errors.price){
+                        $('#create-ticket .error').eq(3).text(errors.price);
+                    }
+                    if(errors.currency_id){
+                        $('#create-ticket .error').eq(4).text(errors.currency_id);
+                    }
+                    btn.attr("disabled", false);
+                    btn.text("Save Ticket");
                 });
             })
         </script>

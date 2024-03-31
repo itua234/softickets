@@ -73,7 +73,7 @@ router.route('/events/:slug')
 //.delete(event.delete);
 
 router.route('/events/:eventId/ticket')
-.post([authGuard, upload.single('image'), handleMulterError, eventValidator.createTicketSchema], event.createTicket)
+.post([authGuard, eventValidator.createTicketSchema], event.createTicket)
 
 router.route('/events/:eventId/ticket/:ticketId')
 .put([authGuard, upload.single('image'), handleMulterError, eventValidator.editTicketSchema], event.editTicket)

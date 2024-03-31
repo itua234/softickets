@@ -74,14 +74,15 @@ niv.extendMessages({
 //export the schemas
 module.exports = {
     createEventSchema: async(req, res, next) => {
-        req.body.image = req.file || {};
+        req.body.image = req.file || {type: 'text/plain'};
         const v = new niv.Validator(req.body, {
             title: 'required|string',
             venue: 'required|string',
             description: 'required|string',
             date: 'required|string',
             categoryId: 'required|numeric',
-            image: 'required|mime:jpeg,jpg,svg,png,pdf|size:2mb'
+            image: 'required|mime:jpeg,jpg,svg,png,pdf'
+            //image: 'required|mime:jpeg,jpg,svg,png,pdf|size:2mb'
         }, {'categoryId.numeric': "The category field is required"});
 
         let matched = await v.check();
@@ -97,7 +98,7 @@ module.exports = {
         }
     },
     createTicketSchema: async(req, res, next) => {
-        req.body.image = req.file || {};
+        //req.body.image = req.file || {type: 'text/plain'};
         const v = new niv.Validator(req.body, {
             name: 'required|string',
             quantity: 'required|integer',
@@ -105,7 +106,7 @@ module.exports = {
             purchase_limit: 'required|integer',
             is_free: 'required|integer',
             currency_id: 'required|integer',
-            image: 'required|mime:jpeg,jpg,svg,png,pdf|size:2mb'
+            //image: 'required|mime:jpeg,jpg,svg,png,pdf|size:2mb'
         }, {'currency_id.integer': "The currency field is required"});
 
         let matched = await v.check();

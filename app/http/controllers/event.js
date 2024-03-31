@@ -1,6 +1,6 @@
 const { sequelize, models: { 
     Notification, Transaction,
-    Currency, Event, 
+    Currency, Event, Category,
     Ticket, Attendee, Order
 } } = require('../../models');
 const { slugify, generateReference, sendMail, useTermii } = require('../../util/helper');
@@ -34,32 +34,22 @@ exports.createEvent = async(req, res) => {
 exports.createTicket = async(req, res) => {
     const { eventId } = req.params;
     const { name, price, quantity, purchase_limit, currency_id, is_free } = req.body;
-    const {url} = await upload(req.file.path)
+    //const {url} = await upload(req.file.path)
 
-    //const createTicketPromises = tickets.map(async(ticket) => {
-        await Ticket.create({
-            event_id: eventId,
-            name: name,
-            price: price,
-            quantity: quantity,
-            purchase_limit: parseInt(purchase_limit),
-            currency_id: currency_id,
-            is_free: parseInt(is_free),
-            image: url
-        });
-    //});
-
-    // Wait for all promises to resolve
-    //await Promise.all(createTicketPromises);
-
-    // Fetch the list after all tickets have been created
-    let lists = await Ticket.findAll({
-        where: {event_id: eventId}
+    let ticket = await Ticket.create({
+        event_id: eventId,
+        name: name,
+        price: price,
+        quantity: quantity,
+        purchase_limit: parseInt(purchase_limit),
+        currency_id: currency_id,
+        is_free: parseInt(is_free)
+        //image: url
     });
 
     return res.status(200).json({
         message: 'Your event has been created:',
-        results: lists,
+        results: ticket,
         error: false
     });
 }
@@ -231,7 +221,10 @@ exports.bookTicket = async(req, res) => {
                 attendee_id: attendee.id,
                 event_id: event.id,
                 total: total,
-                reference
+                reference,
+                status: (total == 0) ? "success" : "pending",
+                verified: (total == 0) ? true : false,
+                received: (total == 0) ? 0 : NULL
             }, {transaction});
 
             const createOrderPromises = tickets.map(async(ticket) => {
@@ -248,14 +241,9 @@ exports.bookTicket = async(req, res) => {
             await Promise.all(createOrderPromises);
 
             if(total == 0){
-                /*transactions.status = "success";
-                transactions.verified = true;
-                transactions.received = total;
-                await transactions.save();*/
-
                 return res.status(200).json({
                     message: 'Ticket has been sent successfully',
-                    //results: result.data?.authorization_url,
+                    results: "/dashboard/account",
                     error: false
                 });
             }
@@ -323,4 +311,37 @@ exports.confirmPayment = async(req, res) => {
             });
         });
     }
+}
+
+exports.showCreateEventForm = async(req, res) => {
+    let categories = await Category.findAll({}); 
+    let currencies = await Currency.findAll({}); 
+    res.render('user/create-event', { user: req.session.user, categories, currencies });
+}
+
+exports.showEvents = async(req, res) => {
+    let events = await Event.findAll({
+        include:[
+            {
+                model: Ticket,
+                as: "tickets"
+            }
+        ],
+        order: [
+            ["id", "ASC"],
+            [{ model: Ticket, as: "tickets" }, 'price', 'ASC']
+        ],
+        raw: false
+    });
+
+    let orders = await Order.findAll({
+
+    }) 
+    res.render('user/events', { user: req.session.user, events });
+}
+
+exports.showEventTickets = async(req, res) => {
+    let {uuid} = req.params;
+    let events = await Event.findAll({}); 
+    res.render('user/events', { user: req.session.user, events });
 }

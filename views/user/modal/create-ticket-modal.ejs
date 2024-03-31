@@ -1,0 +1,86 @@
+<!-- Modal -->
+<div class="modal fade" id="createTicketModal" tabindex="-1" role="dialog" aria-labelledby="createTicketModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-semibold" id="createTicketModalLabel">Create Ticket</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form action="/api/v1/events/" id="create-ticket" method="POST">
+                    <div class="mt-2">
+                        <h6>Ticket Name</h6>
+                        <input class="w-100 form-control form-control-border rounded-0"
+                        type="text" 
+                        maxlength="40"
+                        id="name" 
+                        name="name" 
+                        placeholder="Type here.......">
+                        <span class="error"> </span>
+                    </div>
+                    <div class="mt-3">
+                        <h6>Number of Tickets available</h6>
+                        <input class="w-100 form-control form-control-border rounded-0" 
+                        type="number" min="1"
+                        value="100"
+                        id="quantity" 
+                        name="quantity" 
+                        placeholder="100">
+                        <span class="error"> </span>
+                    </div>
+                    <div class="mt-3">
+                        <h6>Number of persons to this ticket</h6>
+                        <input class="w-100 form-control form-control-border rounded-0" 
+                        type="number" min="1"
+                        value="1"
+                        id="purchase_limit" 
+                        name="purchase_limit" 
+                        placeholder="100">
+                        <span class="error"> </span>
+                    </div>
+                    <div class="mt-3">
+                        <h6>Ticket Price</h6>
+                        <input class="w-100 form-control form-control-border rounded-0" 
+                        type="number" min="0"
+                        value="1000"
+                        id="price" 
+                        name="price" 
+                        placeholder="100">
+                        <p>Set price to 0, if this ticket is FREE. Tickets with NO can be purchased by anyone without need for making any payment.</p>
+                        <span class="error"> </span>
+                    </div>
+                    <div class="mt-3">
+                        <h6>Currency</h6>
+                        <select disabled
+                        name="currency_id"
+                        placeholder="Currency" 
+                        id="currency_id"
+                        class="form-control form-control-border">
+                            <% currencies.forEach(currency => { %>
+                                <option value="<%= currency.id %>"><%= currency.name %> (<%= currency.symbol %>)</option>
+                            <% }); %>
+                        </select>
+                        <span class="error"> </span>
+                    </div>
+                    <div class="mt-3">
+                        <input class="w-100 form-control form-control-border rounded-0" 
+                        type="hidden"
+                        id="event_id" 
+                        name="event_id">
+                    </div>
+                    <div class="mt-3">
+                        <button 
+                        type="submit" 
+                        id="createTicketBtn"
+                        data-url="/api/admin/user/send-push-notification"
+                        class="btn btn-primary rounded-0 w-100 fw-bolder">
+                        Save Ticket</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End of Modal -->

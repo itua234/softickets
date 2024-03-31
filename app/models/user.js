@@ -20,33 +20,7 @@ module.exports = (sequelize, DataTypes) => {
             autoIncrement: true,
             primaryKey: true
         },
-        //uuid: {type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4},
-        /*firstname: {
-            type: DataTypes.STRING,
-            allowNull: true,
-            get() {
-                const rawValue = this.getDataValue('firstname');
-                return rawValue ? rawValue : null;
-            },
-            set(value) {
-                value = value.toLowerCase();
-                const val = value.charAt(0).toUpperCase() + value.slice(1);
-                this.setDataValue('firstname', val);
-            }
-        },
-        lastname: {
-            type: DataTypes.STRING,
-            allowNull: true,
-            get() {
-                const rawValue = this.getDataValue('lastname');
-                return rawValue ? rawValue : null;
-            },
-            set(value) {
-                value = value.toLowerCase();
-                const val = value.charAt(0).toUpperCase() + value.slice(1);
-                this.setDataValue('lastname', val);
-            }
-        },*/
+        uuid: {type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4},
         name: {type: DataTypes.STRING, allowNull: true},
         email: {
             type: DataTypes.STRING,
