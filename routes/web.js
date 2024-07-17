@@ -4,9 +4,11 @@ const auth = require('../app/http/controllers/auth');
 const event = require('../app/http/controllers/event');
 const { isAdmin, isGuest, checkSession } = require("../app/http/middleware/auth");
 const authValidator = require('../app/validators/auth');
+const path = require("path");
 
-router.get("/", function(req, res){
-    res.render('index');
+router.get("/", [event.showIndex]);
+router.get("/admin", function(req, res){
+    res.render('admin/index');
 });
 
 router.get("/success", function(req, res){
@@ -19,6 +21,8 @@ router.get("/dashboard", [checkSession, function(req, res){
 router.get("/dashboard/account", [checkSession, function(req, res){
     res.render('user/account', { user: req.session.user });
 }]);
+
+router.get("/dashboard/payments", [checkSession, event.showBankPayoutForm]);
 router.get("/dashboard/events", [checkSession, event.showEvents]);
 router.get("/dashboard/events/create", [checkSession, event.showCreateEventForm]);
 
@@ -38,8 +42,7 @@ router.route('/register')
 
 router.route('/:slug').get(event.showEvent)
 
-router.route('/:slug/book').get(event.ticketCheckout)
-
-router.route('/transaction/verify').get(event.confirmPayment)
+router.route('/ticket/:id/').get(event.showCheckout)
+//router.route('/:slug/book').get(event.showCheckout)
 
 module.exports = router;

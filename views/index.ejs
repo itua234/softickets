@@ -1,39 +1,92 @@
-<%- include("layout/header.ejs") %>
-    <div class="container" style="border:2px solid red">
+<%- include("layout/header.ejs", { title: "9ja Tickets" }) %>
+    <div class="container">
+        <div class="row mb-5" id="categories" style="margin-top:30px;">
+            <div class="col-12">
+                <div class="carousel" data-flickity='{ "wrapAround": true, "pageDots": false }'>
+                    <button 
+                        type="button"
+                        data-id="all"
+                        class="categoryBtn btn btn-primary mr-3">
+                        All
+                    </button>
+                    <% categories.forEach(category => { %>
+                        <button 
+                        type="button"
+                        data-id="<%= category.id %>"
+                        class="categoryBtn btn btn-primary mr-3">
+                        <%= category.name %>
+                        </button>
+                    <% }); %>
+                </div>
+            </div>
+        </div>
         <div class="row" id="events">
             
         </div>
+        <!--  Pagination Starts -->
+        <div class="d-flex justify-content-center mt-2 mb-4">
+            <div class="mr-3">
+                <button 
+                type="button"
+                disabled
+                data-page=""
+                class="btn btn-secondary fs-4 fw-bold paginate">
+                <img src="/assets/images/icons/cil_arrow-left.svg" width="20" class="mr-2" alt="">
+                Previous
+                </button>
+            </div>
+            <div class="">
+                <button 
+                type="button"
+                data-page=""
+                class="btn btn-primary fs-4 fw-bold paginate">
+                Next
+                <img src="/assets/images/icons/cil_arrow-right.svg" width="20" class="mr-2" alt="">
+                </button>
+            </div>
+        </div>
+        <!--  Pagination Ends -->
     </div>
 <%- include("layout/footer.ejs") %>
     <script src="/assets/libs/jquery/dist/jquery.min.js"></script>
     <script src="/assets/libs/axios/axios.js"></script>
+    <script src="/assets/js/flickity.min.js"></script>
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <script src="/assets/js/paginator.js"></script>
     <script>
         let token = $("meta[name='csrf-token']").attr("content");
         let baseUrl = $("meta[name='base-url']").attr("content");
-        var authToken = localStorage.getItem('adminToken');
+        var authToken = localStorage.getItem('userToken');
 
-        function getPrices(tickets){
-            if(tickets.length < 2){
-                return [
-                    tickets[0]["price"], 
-                    tickets[0]["price"]
-                ];
+        function getPrices(tickets) {
+            if (!Array.isArray(tickets) || tickets.length === 0) {
+                return [0, 0]; // Return default prices if tickets array is empty
             }
-            return [
-                tickets[0]["price"],
-                tickets[tickets.length - 1]["price"]
-            ]
+
+            // Initialize min and max prices with the price of the first ticket
+            let minPrice = tickets[0].price;
+            let maxPrice = tickets[0].price;
+
+            // Loop through the tickets array to find the actual min and max prices
+            for (let i = 1; i < tickets.length; i++) {
+                const price = tickets[i].price;
+                if (price < minPrice) {
+                    minPrice = price;
+                } else if (price > maxPrice) {
+                    maxPrice = price;
+                }
+            }
+
+            return [minPrice, maxPrice];
         }
 
-        function fetchEvents(){
-            axios.get(`${baseUrl}/api/v1/events`)
-            .then((res) => {
-                let events = res.data.results;
-                alert(events.length);
-                $("#events").empty();
-                events.forEach(function(event, index){
+        function fetchEvents(events, currentPage, perPage, totalEntries){
+            $("#events").empty();
+            if(events.length == 0){
+                $("#events").append(`<p>No data available...</p>`);
+            }else{
+                events.map(function(event, index){
                     let prices = getPrices(event.tickets);
                     $("#events").append(`
                     <div class="col-xl-3 col-lg-3 col-md-4 col-sm-5 mb-3">
@@ -44,11 +97,11 @@
                                 </div>
                                 <div class="">
                                     <h4 class="evt-title">${event.title}</h4>
-                                    <div class="d-flex">
-                                        <img alt="" class="calendar" src="/assets/images/icons/headphones.svg" />
-                                        <h6 class="evt-date">Wed, Mar 20, 2024</h6>
+                                    <div class="d-flex align-items-center">
+                                        <img alt="" class="calendar" src="/assets/images/icons/calendar-clock.svg" />
+                                        <h6 class="evt-date m-0">${event.date.date +" "+ event.date.time}</h6>
                                     </div>
-                                    <h4 class="evt-price">
+                                    <h4 class="evt-price mt-2">
                                         ${(prices[0] < 1 && prices[1] < 1) ? "FREE" : ("₦" + prices[0].toFixed(2).toLocaleString() + " - ₦" + prices[1].toFixed(2).toLocaleString())}
                                     </h4>
                                 </div>
@@ -56,10 +109,29 @@
                         </a>
                     </div>
                     `);
-                })
-            });
+                });
+            }
         };
-        fetchEvents();
+
+        let paginator = new Paginator(baseUrl, "/api/v1/events", 3, fetchEvents);
+        //Add event listeners for pagination buttons
+        $(".paginate").on('click', function () {
+            paginator.goToPage($(this).data('page'));
+        });
+        // Filter input event listener
+        $('.categoryBtn').on('click', function() {
+            let value = $(this).data("id");
+            if(value == "all"){
+                paginator.getEventsByCategory("/api/v1/events");
+            }else{
+                paginator.getEventsByCategory(`/api/v1/categories/${value}/events`);
+            }
+        });
+        /*$('#startDate, #endDate').on('input', function() {
+            let startDate = $("#startDate").val();
+            let endDate = $("#endDate").val();
+            paginator.setDateRange(startDate, endDate);
+        });*/
     </script>
 </body>
 </html>

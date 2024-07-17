@@ -1,12 +1,15 @@
 const { sequelize, models: { 
-    Notification, Transaction,
-    Currency, Event, Category,
+    Notification, Transaction, User,
+    Currency, Event, Category, Wallet,
     Ticket, Attendee, Order
 } } = require('../../models');
+const Sequelize = require('sequelize');
 const { slugify, generateReference, sendMail, useTermii } = require('../../util/helper');
-const { pay, getPaymentData } = require('../../util/payment');
+const { pay, getPaymentData, getBankList, resolve } = require('../../util/payment');
 const { upload } = require('../../services/cloudinary');
 const { escape } = require('querystring');
+const crypto = require('crypto');
+const secretKey = process.env.PAYSTACK_SECRET;
 require('dotenv').config();
 
 exports.createEvent = async(req, res) => {
@@ -126,22 +129,69 @@ exports.deleteTicket = async(req, res) => {
 }
 
 exports.getAllEvents = async(req, res) => {
-    let events = await Event.findAll({
-        include:[
+    const events = await Event.findAll({
+        include: [
             {
                 model: Ticket,
-                as: "tickets"
+                as: "tickets",
+                include:[
+                    {
+                        model: Currency,
+                        as: "currency"
+                    }
+                ]
             }
         ],
+        /*where: {
+            '$tickets.id$': { [Sequelize.Op.ne]: null } // Tickets exist
+        },
+        having: Sequelize.literal('COUNT(tickets.id) > 0'), // Tickets count > 0*/
         order: [
             ["id", "ASC"],
             [{ model: Ticket, as: "tickets" }, 'price', 'ASC']
         ],
+        //group: ['Event.id'], // Group by event to count tickets per event
+        //subQuery: false, // Prevent Sequelize from generating a subquery
         raw: false
     });
 
     return res.status(200).json({
         message: 'all events!',
+        results: events,
+        error: false
+    });
+}
+
+exports.getEventsByCategory = async(req, res) => {
+    const {categoryId} = req.params;
+    const events = await Event.findAll({
+        include: [
+            {
+                model: Ticket,
+                as: "tickets",
+                include:[
+                    {
+                        model: Currency,
+                        as: "currency"
+                    }
+                ]
+            }
+        ],
+        where: {
+            category_id: categoryId,
+            '$tickets.id$': { [Sequelize.Op.ne]: null } // Tickets exist
+        },
+        having: Sequelize.literal('COUNT(tickets.id) > 0'), // Tickets count > 0
+        order: [
+            ["id", "ASC"],
+            [{ model: Ticket, as: "tickets" }, 'price', 'ASC']
+        ],
+        group: ['Event.id'], // Group by event to count tickets per event
+        raw: false
+    });
+
+    return res.status(200).json({
+        message: 'events!',
         results: events,
         error: false
     });
@@ -154,7 +204,13 @@ exports.getEvent = async(req, res) => {
         include:[
             {
                 model: Ticket,
-                as: "tickets"
+                as: "tickets",
+                include:[
+                    {
+                        model: Currency,
+                        as: "currency"
+                    }
+                ]
             }
         ],
         order: [[{ model: Ticket, as: "tickets" }, 'price', 'ASC']],
@@ -175,7 +231,13 @@ exports.showEvent = async(req, res) => {
         include:[
             {
                 model: Ticket,
-                as: "tickets"
+                as: "tickets",
+                include:[
+                    {
+                        model: Currency,
+                        as: "currency"
+                    }
+                ]
             }
         ],
         order: [[{ model: Ticket, as: "tickets" }, 'price', 'ASC']],
@@ -185,7 +247,13 @@ exports.showEvent = async(req, res) => {
     return res.render('event', {event});
 }
 
-exports.ticketCheckout = async(req, res) => {
+exports.showIndex = async(req, res) => {
+    let categories = await Category.findAll({});
+
+    return res.render('index', {categories});
+}
+
+exports.showCheckou = async(req, res) => {
     const { slug } = req.params;
     const { data } = req.query;
     const decodedString = decodeURIComponent(data);
@@ -197,6 +265,26 @@ exports.ticketCheckout = async(req, res) => {
     }); 
 
     return res.render('checkout', {tickets: parsedObject, total, event});
+}
+
+exports.showCheckout = async(req, res) => {
+    const { id } = req.params;
+    let ticket = await Ticket.findOne({
+        where: {id: id},
+        include:[
+            {
+                model: Currency,
+                as: "currency"
+            }
+        ],
+        raw: false
+    }); 
+    let event = await Event.findOne({
+        where: {id: ticket.event_id}
+    });
+    //return res.json(ticket);
+
+    return res.render('checkout', {ticket, event});
 }
 
 exports.bookTicket = async(req, res) => {
@@ -224,7 +312,7 @@ exports.bookTicket = async(req, res) => {
                 reference,
                 status: (total == 0) ? "success" : "pending",
                 verified: (total == 0) ? true : false,
-                received: (total == 0) ? 0 : NULL
+                received: (total == 0) ? 0 : null
             }, {transaction});
 
             const createOrderPromises = tickets.map(async(ticket) => {
@@ -247,11 +335,17 @@ exports.bookTicket = async(req, res) => {
                     error: false
                 });
             }
-            const payResult = await pay({"email": email, "amount": total, reference});
-            let result = JSON.parse(payResult);
+            //const payResult = await pay({"email": email, "amount": total, reference});
+            //let result = JSON.parse(payResult);
+            let data = {
+                key: process.env.PAYSTACK_PUBLIC,
+                email: attendee.email,
+                amount: total,
+                reference: transactions.reference
+            }
             return res.status(200).json({
-                message: 'Payment url generated successfully',
-                results: result.data?.authorization_url,
+                message: 'Payment data generated successfully',
+                results: data,
                 error: false
             });
         });
@@ -263,30 +357,43 @@ exports.bookTicket = async(req, res) => {
     }
 }
 
-exports.confirmPayment = async(req, res) => {
-    var { reference } = req.query;
-    var transaction = await Transaction.findOne({
-        where: {reference}
-    });
+const calculateCommission = (orders) => {
+    let total = 0;
 
-    if(Object.is(transaction, null)){
-        res.status(422).json({
-            message: 'Order reference verification failed',
-            results: transaction,
-            error: true
-        });
-    }else{
-        getPaymentData(reference)
-        .then(data => {
-            let result = JSON.parse(data);
+    for (const order of orders) {
+        for (let i=0; i<order.quantity; i++) {
+            if (order.amount !== 0) { // Check if the price is not zero
+                let commission = (order.amount * 5 / 100) + 100;
+                let balance = order.amount - commission;
+                total += balance;
+            }
+        }
+    }
+
+    return total;
+}
+
+exports.confirmPayment = async(req, res) => {
+    let reference = req.query.reference;
+    var transaction = await Transaction.findOne({ where: {reference} });
+    let orders = await Order.findAll({ where: {transaction_id: transaction.id} });
+    let event = await Event.findOne({ where: {id: transaction.event_id} });
+    let wallet = await Wallet.findOne({ where: {user_id: event.creator_id} });
+
+    if(transaction){
+        if(!transaction.verified){
+            let result = JSON.parse(await getPaymentData(reference));
             let status = result["data"]["status"];
 
             async function updateOrder(){
                 if(status == "success"){
-                    transaction.status = result.data.status;
+                    transaction.status = "success";
                     transaction.verified = true;
                     transaction.received = result["data"]["amount"] / 100;
-                    //await transaction.save();
+                    await transaction.save();
+
+                    wallet.balance += calculateCommission(orders)
+                    await wallet.save();
 
                     /*await sendMail({
                         email: attendee.email,
@@ -296,21 +403,80 @@ exports.confirmPayment = async(req, res) => {
                     });*/
 
                     return res.status(200).json({
-                        message: 'Order reference verification successful',
-                        results: transaction,
+                        message: 'Funding Successful!',
+                        results: null,
+                        error: false
+                    });
+                }else if(status == "abandoned"){
+                    transaction.status = "failed";
+                    transaction.verified = true;
+                    await transaction.save();
+
+                    return res.status(200).json({
+                        message: 'Funding Successful!',
+                        results: null,
                         error: false
                     });
                 }
             };
             updateOrder();
-        }).catch(err => {
-            return res.status(500).json({
-                message: 'Order verification failed',
-                results: err,
-                error: true
+        }else {
+            // Transaction is already verified
+            return res.status(200).json({
+                message: 'Transaction already verified',
+                results: null,
+                error: false
             });
-        });
+        }
     }
+}
+
+exports.paymentWebhook = async(req, res) => {
+    //validate event
+    //return res.json(crypto.createHmac('sha512', secretKey).update(JSON.stringify(req.body)).digest('hex'));
+    const hash = crypto.createHmac('sha512', secretKey).update(JSON.stringify(req.body)).digest('hex');
+    if (hash == req.headers['x-paystack-signature']) {
+        // Retrieve the request's body
+        const event = req.body.event;
+        let reference = req.body.data.reference;
+
+        switch(event){
+            case "charge.success":
+                let paymentData = JSON.parse(await getPaymentData(reference));
+                let amount = paymentData["data"]["amount"]  / 100;
+                
+                if(paymentData["data"]["status"] == "success"){
+                    let transaction = await Transaction.findOne({ where: {reference} });
+                    let orders = await Order.findAll({ where: {transaction_id: transaction.id} });
+                    let event = await Event.findOne({ where: {id: transaction.event_id} });
+                    let wallet = await Wallet.findOne({ where: {user_id: event.creator_id} });
+                    if(transaction){
+                        if(!transaction.verified){
+                            transaction.status = "success";
+                            transaction.verified = true;
+                            transaction.received = amount;
+                            await transaction.save();
+
+                            wallet.balance += calculateCommission(orders)
+                            await wallet.save();
+                            /*if(user.fcmToken){
+                                var payload = {
+                                    notification: {
+                                        "title": "Transaction Successful",
+                                        "body": `your transaction was successful`
+                                    },
+                                    token: user.fcmToken
+                                };
+                                await sendPushNotification(payload);
+                            }*/
+                        }
+                    }
+                }
+            break;
+        }
+    }
+
+    res.send(200);
 }
 
 exports.showCreateEventForm = async(req, res) => {
@@ -319,8 +485,13 @@ exports.showCreateEventForm = async(req, res) => {
     res.render('user/create-event', { user: req.session.user, categories, currencies });
 }
 
+exports.showBankPayoutForm = async(req, res) => {
+    res.render('user/payment', { user: req.session.user});
+}
+
 exports.showEvents = async(req, res) => {
     let events = await Event.findAll({
+        where: {creator_id: req.session.user.id},
         include:[
             {
                 model: Ticket,
@@ -333,10 +504,21 @@ exports.showEvents = async(req, res) => {
         ],
         raw: false
     });
+    /*for(let event of events){
+        let transactions = await Transaction.findAll({
+            where: {event_id: event.id, status: "success", verified: true}
+        });
+        for(let transaction of transactions){
+            let orders = await Order.findAll({
+                where: {transaction_id: transaction.id}
+            })
+            event.dataValues.amount_sold = 0; 
+            for(let order of orders){
+                event.dataValues.amount_sold += order.quantity;
+            }
+        }
+    }*/
 
-    let orders = await Order.findAll({
-
-    }) 
     res.render('user/events', { user: req.session.user, events });
 }
 

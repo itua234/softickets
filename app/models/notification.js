@@ -1,5 +1,4 @@
-const Sequelize = require('sequelize');
-module.exports = (sequelize, DataTypes) => {
+module.exports = (sequelize, DataTypes, Sequelize) => {
     const Notification = sequelize.define('Notification', {
         id: {
             type: DataTypes.UUID,

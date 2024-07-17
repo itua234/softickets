@@ -1,5 +1,5 @@
 const { sequelize, models: { User, Notification, Currency, Thrift } } = require('../../models');
-const { resolve } = require('../../util/payment');
+const { resolve, getBankList } = require('../../util/payment');
 require('dotenv').config();
 
 exports.verify_account = async(req, res) => {
@@ -33,41 +33,12 @@ exports.getCurrencies = async(req, res) => {
     });
 }
 
-exports.createThrift = async(req, res) => {
-    const { amount, slots, group_chat, currency_id, type, startDate } = req.body;
-
-    let thrift = await Thrift.create({
-        creator_id: req.user.id,
-        code: "jdjdjdj",
-        amount, 
-        group_chat,
-        slots,
-        currency_id,
-        returns: parseInt(slots) * parseInt(amount),
-        type,
-        startDate
-    });
+exports.getBanks = async(req, res) => {
+    let banks = JSON.parse(await getBankList());
 
     return res.status(200).json({
-        message: 'Curencies::',
-        results: thrift,
-        error: false
-    });
-}
-
-exports.joinThrift = async(req, res) => {
-    const {thriftId} = req.params;
-    const {date} = req.body;
-
-    let thrift = await Thrift.findOne({
-        where: {
-            id: thriftId
-        }
-    });
-
-    return res.status(200).json({
-        message: 'Curencies::',
-        results: thrift,
+        message: 'Banks:',
+        results: banks["data"],
         error: false
     });
 }

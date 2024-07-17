@@ -58,23 +58,24 @@ if(APP_ENV === "production"){
 }
 
 function useRoutes() {
-    // Define a middleware function to add common variables to response locals
+    // Define a middleware to add common variables to req & res locals
     app.use((req, res, next) => {
         const baseUrl = req.protocol + '://' + req.get('host');
-        //const csrfToken = req.csrfToken();
         res.locals.baseUrl = baseUrl;
+        req.requestTime = new Date().toISOString();
+        res.locals.title = "9ja Tickets";
+        //const csrfToken = req.csrfToken();
         //res.locals.csrfToken = csrfToken;
         next();
     });
 
+    app.get('/sitemap.xml', function(req, res){
+        res.type('application/xml');
+        res.sendFile(path.join(__dirname, "public", "sitemap.xml"));
+    });
+
     app.use('', web);
     app.use('/api/v1', api);
-
-    //Test middleware
-    app.use((req, res, next) => {
-        req.requestTime = new Date().toISOString();
-        next();
-    });
 
     //Handling unhandles routes for all http methods
     app.all("*", (req, res, next) => {

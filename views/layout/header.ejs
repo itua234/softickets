@@ -3,17 +3,49 @@
 <head>
 	<meta charset="utf-8">
 	<base href="">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-    <meta name="base-url" content="<%= baseUrl %>">
+	<title><%= typeof title !== 'undefined' ? title : "" %></title>
+	<meta name="base-url" content="<%= baseUrl %>">
 	<meta name="csrf-token" content="<%= baseUrl %>">
 	<meta name="theme-color" content="" />
     <meta name="apple-mobile-web-app-status-bar-style" content="" />
+	<!-- Viewport-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+	<!-- SEO Meta Tags-->
+	<meta name="description" content="">
+	<meta name="keywords" content="">
+	<meta name="author" content="Createx Studio">
 
-	<title>sh hires</title>
+	<meta property="og:title" content="" />
+	<meta property="og:image" content="" />
+	<meta property="og:description" content="" />
+	<meta property="fb:app_id" content="" />
+	<meta property="0g:url" content="" />
+	<meta property="og:type" content="" />
+	<meta property="og:site_name" content="" />
+	<meta property="og:locale" content="" />
+	<meta property="article_author" content="" />
+
+	<meta name="twitter:card" content="" />
+	<meta name="twitter:site" content="" />
+	<meta name="twitter:creator" content="" />
+	<meta name="twitter:url" content="" />
+	<meta name="twitter:title" content="" />
+	<meta name="twitter:description" content="" />
+	<meta name="twitter:image" content="" />
+
+	<link href="" ref="publisher" />
+	<meta itemprop="name" content="" />
+	<meta itemprop="description" content="" />
+	<meta itemprop="image" content="" />
+
 	<link rel="shortcut icon" type="image/png" href="/assets/images/logos/favicon.png" />
 	<link rel="stylesheet" type="text/css" href="/assets/css/icon-font.min.css">
 	<link rel="stylesheet" href="/assets/css/bootstrap.css" />
+	<link rel="stylesheet" href="/assets/css/flickity.min.css">
 	<link rel="stylesheet" href="/assets/css/util.css" />
 	<link rel="stylesheet" href="/assets/css/main-app.css" />
+	<script>
+		console.log('<%= title %>'); // This will log the title to the browser's console
+	</script>
 </head>
 <body>

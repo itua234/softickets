@@ -1,18 +1,4 @@
 const bcrypt = require('bcrypt');
-const Sequelize = require('sequelize');
-const dbConfig = require('../../config/db-config');
-const sequelize = new Sequelize(
-    dbConfig.DATABASE, 
-    dbConfig.USER, 
-    dbConfig.PASSWORD, 
-    {
-        dialect: dbConfig.DIALECT,
-        host: dbConfig.HOST
-    }
-);
-
-const Notification = require('./notification')(sequelize, Sequelize.DataTypes);
-
 module.exports = (sequelize, DataTypes) => {
     const User = sequelize.define('User', {
         id: {
@@ -57,15 +43,11 @@ module.exports = (sequelize, DataTypes) => {
                     user.password = await bcrypt.hash(user.password, salt);
                 }
             }
-        }
+        },
+        defaultScope: {
+            attributes: { exclude: ['createdAt', 'updatedAt'] }
+        },
     })
-
-    /*User.belongsToMany(Event, {
-        through: Attendee,
-        foreignKey: 'user_id',
-        otherKey: 'event_id',
-        as: 'eventsAttending', // Alias for the association
-    });*/
 
     User.prototype.notify = async function (notification) {
         const user = this.dataValues;
@@ -75,10 +57,11 @@ module.exports = (sequelize, DataTypes) => {
 
     User.prototype.readNotifications = async function () {
         const user = this.dataValues;
+        const Notification = sequelize.models.Notification;
         let notifications = await Notification.scope('read').findAll({
             where: {
                 notifiable_id: user.id,
-                notifiable_type: "user"
+                type: this.constructor.name
             }
         });
         return notifications;
@@ -86,14 +69,27 @@ module.exports = (sequelize, DataTypes) => {
 
     User.prototype.unReadNotifications = async function () {
         const user = this.dataValues;
+        const Notification = sequelize.models.Notification;
         let notifications = await Notification.scope('unRead').findAll({
             where: {
                 notifiable_id: user.id,
-                notifiable_type: "user"
+                type: this.constructor.name
             }
         });
         return notifications;
     }
+
+    User.prototype.markAsRead = async function () {
+        const notifications = await this.getUnreadNotifications();
+        for (let notification of notifications) {
+            await notification.markAsRead();
+        }
+    };
+
+    // Define relationships
+    User.associate = models => {
+        //User.belongsToMany(models.Event, {through: models.Attendee, foreignKey: 'user_id', otherKey: 'event_id', as: "eventsAttending"});
+    };
 
     return User;
 }

@@ -1,13 +1,12 @@
 const express = require('express');
-const crypto = require("crypto");
 const router = express.Router();
-const auth = require('../app/http/controllers/auth');
-const user = require('../app/http/controllers/user');
+const authRoutes = require('./authRoutes');
+const userRoutes = require('./userRoutes');
+
+const adminMain = require('../app/http/controllers/admin/main');
 const wallet = require('../app/http/controllers/wallet');
 const event = require('../app/http/controllers/event');
 const { authGuard, isSofcrypt } = require("../app/http/middleware/auth");
-const authValidator = require('../app/validators/auth');
-const userValidator = require('../app/validators/user');
 const eventValidator = require('../app/validators/event');
 const multer = require('multer');
 const path = require('path');
@@ -57,42 +56,40 @@ router.get('/', function (req, res) {
     })
 });
 
-router.get('/user/', [authGuard], user.get_user);
-router.post('/user/', [authGuard, userValidator.updateProfileSchema], user.update_profile);
-
-router.get('/account/verify/:account/:code', [], wallet.verify_account);
-router.get('/currency', [authGuard], wallet.getCurrencies);
+router.use("/auth", authRoutes);
+router.use("/user", userRoutes);
 
 router.route('/events')
 .get(event.getAllEvents)
-.post([authGuard, upload.single('image'), handleMulterError, eventValidator.createEventSchema], event.createEvent);
+.post([
+    authGuard, upload.single('image'), handleMulterError, eventValidator.createEventSchema
+], event.createEvent);
 
 router.route('/events/:slug')
 .get(event.getEvent)
 //.post([authGuard, upload.array('images', 3), handleMulterError, updateProductSchema], event.update)
 //.delete(event.delete);
 
-router.route('/events/:eventId/ticket')
-.post([authGuard, eventValidator.createTicketSchema], event.createTicket)
+router.route('/events/:eventId/ticket').post([
+    authGuard, eventValidator.createTicketSchema
+], event.createTicket)
 
 router.route('/events/:eventId/ticket/:ticketId')
-.put([authGuard, upload.single('image'), handleMulterError, eventValidator.editTicketSchema], event.editTicket)
+.put([
+    authGuard, upload.single('image'), handleMulterError, eventValidator.editTicketSchema
+], event.editTicket)
 .delete(event.deleteTicket);
 
-router.route('/events/:eventId/book')
-.post([], event.bookTicket)
+router.post('/events/:eventId/book', event.bookTicket);
 
-router.post('/auth/signup', [authValidator.register], auth.register);
-router.get('/auth/email/verify/:email/:code/', [authValidator.verify_email], auth.verify_email);
-router.post('/auth/signin', [authValidator.login], auth.login);
-router.get('/auth/signout', [authGuard], auth.logout);
-router.post('/auth/password/reset', [authValidator.resetPasswordSchema], auth.resetPassword);
-router.post('/auth/change-password', [authGuard, authValidator.changePasswordSchema], auth.changePassword);
-router.get('/email/:email/:purpose/send-code', [authValidator.send_code], auth.send_code);
+router.get('/categories/:categoryId/events', event.getEventsByCategory);
 
-router.get("/test", function(req, res){
-    from = Math.floor(new Date("2023-08-10").getTime() / 1000);
-    return res.json(from);
-});
+router.get('/transaction/verify', [], event.confirmPayment);
+router.post('/transaction/webhook', [], event.confirmPayment);
+router.get('/account/verify/:account/:code', [], wallet.verify_account);
+router.get('/currency', [authGuard], wallet.getCurrencies);
+router.get('/banks', [authGuard], wallet.getBanks);
+
+router.get('/statistics', [], adminMain.getStatistics);
 
 module.exports = router;

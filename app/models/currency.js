@@ -6,6 +6,7 @@ module.exports = (sequelize, DataTypes) => {
             primaryKey: true
         },
         name: {type: DataTypes.STRING, allowNull: false},
+        code: {type: DataTypes.STRING, allowNull: false},
         symbol: {type: DataTypes.STRING}
     },{
         tableName: 'currencies'

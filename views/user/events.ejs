@@ -6,9 +6,6 @@
                     <div class="col-xl-9 col-lg-9 col-md-8 pb-4">
                         <div class="" id="ticket-box">
                             <% events.forEach(event => { %>
-    <% const dateString = event.date; %>
-    <% const date = new Date(dateString); %>
-    <% const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`; %>
                                 <div class="mt-3 p-2" style="border:2px solid gray">
                                     <div class="d-flex justify-content-between">
                                         <div class="d-flex">
@@ -16,7 +13,7 @@
                                             <div class="">
                                                 <h6><%= event.title %></h6>
                                                 <p><%= event.description %></p>
-                                                <p><%= formattedDate %></p>
+                                                <p><%= event.date.date+" "+event.date.time %></p>
                                             </div>
                                         </div>
                                         <img src="/assets/images/icons/upload.svg" />

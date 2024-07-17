@@ -1,107 +1,137 @@
 <%- include("layout/header.ejs") %>
-    <div class="container">
-        <div class="row justify-content-between" id="event">
-            <div class="col-xl-7 col-lg-8 col-md-6 col-sm-6 mb-3">
-                <div class="">
-                    <h5>Register</h5>
-                    <form id="checkout" action="/api/v1/events" method="POST">
-                        <p>Ticket Information</p>
-                        <div class="container-fluid px-0">
-                            <div class="row">
-                                <div class="col-xl-6 col-lg-6 col-md-12 mb-3">
-                                    <div class="">
-                                        <label>Firstname</label>
-                                        <input 
-                                        name="firstname" 
-                                        class="form-control form-control-border" 
-                                        type="text" 
-                                        id="firstname"
-                                        placeholder="First Name">
-                                        <span class="error"></span>
+    <section class="" style="background-color:#F6F6F7;">
+        <div class="container pt-5">
+            <div class="row justify-content-between" id="event">
+                <div class="col-xl-7 col-lg-8 col-md-6 col-sm-6 mb-3">
+                    <div class="">
+                        <h5>Buy <%= ticket.name %> Ticket</h5>
+                        <form id="checkout" action="/api/v1/events" method="POST">
+                            <p>Ticket Information</p>
+                            <div class="container-fluid px-0">
+                                <div class="row">
+                                    <div class="col-xl-6 col-lg-6 col-md-12 mb-3">
+                                        <div class="">
+                                            <label>Firstname</label>
+                                            <input 
+                                            name="firstname" 
+                                            class="form-control form-control-border" 
+                                            type="text" 
+                                            id="firstname"
+                                            placeholder="First Name">
+                                            <span class="error"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-6 col-lg-6 col-md-12 mb-3">
+                                        <div class="">
+                                            <label>Lastname</label>
+                                            <input 
+                                            name="lastname" 
+                                            class="form-control form-control-border" 
+                                            type="text" 
+                                            id="lastname"
+                                            placeholder="Last Name">
+                                            <span class="error"></span>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="col-xl-6 col-lg-6 col-md-12 mb-3">
-                                    <div class="">
-                                        <label>Lastname</label>
-                                        <input 
-                                        name="lastname" 
-                                        class="form-control form-control-border" 
-                                        type="text" 
-                                        id="lastname"
-                                        placeholder="Last Name">
-                                        <span class="error"></span>
+                                <div class="row">
+                                    <div class="col-xl-6 col-lg-6 col-md-12 mb-3">
+                                        <div class="">
+                                            <label>Email Address</label>
+                                            <input 
+                                            name="email" 
+                                            class="form-control form-control-border" 
+                                            type="email"
+                                            id="email" 
+                                            placeholder="your email here...">
+                                            <span class="error"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-6 col-lg-6 col-md-12 mb-3">
+                                        <label>Number of ticket</label>
+                                        <input type="hidden" name="event_id" id="event_id" value="">
+                                        <select class="form-select quantity w-100" style="height:50px;border:none;"
+                                        name="quantity">
+                                            <% for (let i = 1; i < ticket.purchase_limit + 1; i++){ %>
+                                                <option value="<%= i %>" data-price="<%= ticket.price %>" data-currency="<%= ticket.currency.symbol %>"><%= i %></option>
+                                            <% }; %>
+                                        </select>
+                                    </div>
+                                    <div class="col-xl-6 col-lg-6 col-md-12">
+                                        <div class="">
+                                            <label>Phone Number</label>
+                                            <input 
+                                            name="phone" 
+                                            class="form-control form-control-border" 
+                                            type="text" 
+                                            id="phone"
+                                            placeholder="+234">
+                                            <span class="error"></span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="row">
-                                <div class="col-xl-6 col-lg-6 col-md-12 mb-3">
-                                    <div class="">
-                                        <label>Email Address</label>
-                                        <input 
-                                        name="email" 
-                                        class="form-control form-control-border" 
-                                        type="email"
-                                        id="email" 
-                                        placeholder="Email Address">
-                                        <span class="error"></span>
-                                    </div>
-                                </div>
-                                <div class="col-xl-6 col-lg-6 col-md-12">
-                                    <div class="">
-                                        <label>Phone Number</label>
-                                        <input 
-                                        name="phone" 
-                                        class="form-control form-control-border" 
-                                        type="text" 
-                                        id="phone"
-                                        placeholder="+234">
-                                        <span class="error"></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
-            </div>
-            <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 mb-3">
-                <div class="px-3 pt-2 pb-4"  style="border:2px solid black;">
-                    <h5>Order Summary</h5>
-                    <% tickets.forEach(ticket => { %>
+                <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 mb-3">
+                    <div class="px-3 pt-2 pb-4 bg-white">
+                        <h5>Ticket Information</h5>
                         <div class="d-flex justify-content-between mb-4">
-                            <h6><%= ticket.quantity+ " x " +ticket.name %></h6>
-                            <span><%= (ticket.total.toFixed(2) < 1) ? "FREE" : ticket.total %></span>
+                            <h6><%= ticket.name %></h6>
+                            <!--<span><%= (ticket.price.toFixed(2) < 1) ? "FREE" : ticket.price %></span>-->
                         </div>
-                    <% }); %>
-                    <div class="mb-2 d-flex justify-content-between">
-                        <h6>Subtotal</h6>
-                        <span><%= (total.toFixed(2) < 1) ? "FREE" : total %></span>
+                        <div class="mb-2 d-flex justify-content-between">
+                            <h6>Quantity</h6>
+                            <span class="qty">1</span>
+                        </div>
+                        <div class="mb-2 d-flex justify-content-between">
+                            <h6>Fees</h6>
+                            <span>0</span>
+                        </div>
+                        <div class="mb-2 d-flex justify-content-between">
+                            <h6>Sub Total</h6>
+                            <span class="subtotal"><%= (ticket.price.toFixed(2) < 1) ? "FREE" : ticket.currency.symbol+""+ticket.price.toLocaleString() %></span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <h5>Total</h6>
+                            <span class="total h5"><%= (ticket.price.toFixed(2) < 1) ? "FREE" : ticket.currency.symbol+""+ticket.price.toLocaleString() %></span>
+                        </div>
+                        <input type="hidden" id="ticket" data-id="<%= ticket.id %>" data-name="<%= ticket.name %>" data-price="<%= ticket.price %>">
                     </div>
-                    <div class="d-flex justify-content-between">
-                        <h6>Total</h6>
-                        <span><%= (total.toFixed(2) < 1) ? "FREE" : total %></span>
+                    <div class="">
+                        <button 
+                        id="submitBtn"
+                        type="button" 
+                        disabled
+                        class="btn btn-primary w-100 mt-3 rounded-all">Proceed To Payment</button>
                     </div>
-                </div>
-                <div class="">
-                    <button 
-                    id="submitBtn"
-                    type="button" 
-                    disabled
-                    class="btn btn-primary w-100 mt-3 rounded-all">Buy Tickets</button>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 <%- include("layout/footer.ejs") %>
     <script src="/assets/libs/jquery/dist/jquery.min.js"></script>
     <script src="/assets/libs/axios/axios.js"></script>
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <script src="https://js.paystack.co/v1/inline.js"></script>
     <script>
         let token = $("meta[name='csrf-token']").attr("content");
         let baseUrl = $("meta[name='base-url']").attr("content");
-        var authToken = localStorage.getItem('adminToken');
 
         $(document).ready(function() {
+            // Attach onchange event handler to each select element
+            $('.quantity').change(function() {
+                var selectedValue = $(this).val();
+                let price = $(this).find('option:selected').data('price');
+                let currency = $(this).find('option:selected').data('currency');
+                let total = selectedValue * price;
+                $(".qty").text(selectedValue);
+                $(".subtotal").text(currency+total.toLocaleString());
+                $(".total").text(currency+total.toLocaleString());
+            });
+
             // Attach input event listener to all input fields
             $('input[type="text"], input[type="email"]').on('input', function() {
                 // Check if all input fields have a value
@@ -113,34 +143,77 @@
                 $('#submitBtn').prop('disabled', !allFilled);
             });
 
-            $('#submitBtn').on("click", function(event){
+            $('#submitBtn').on("click", async function(event){
                 event.preventDefault();
+                let btn = $(this);
+                btn.attr("disabled", true);
+                btn.html(`<img src="/assets/images/loader.gif" id="loader-gif">`);
                 $(".error").text("");
                 var url = $('#checkout').attr('action');
                 url+="/" + "<%= event.id %>" + "/book";
-                const urlParams = new URLSearchParams(window.location.search);
-                const tickets = JSON.parse(urlParams.get('data'));
+                //const urlParams = new URLSearchParams(window.location.search);
+                // Parse the JSON string into a JavaScript object
+                let total = $(".quantity").val() * $("#ticket").data('price');
+                let object = [];
+                object.push({
+                    "id": $("#ticket").data('id'),
+                    "name": $("#ticket").data('name'),
+                    "quantity": $(".quantity").val(),
+                    "price": $("#ticket").data('price'),
+                    "total": total
+                });
 
                 const inputs = {
                     email: $("#email").val(),
                     firstname: $("#firstname").val(),
                     lastname: $("#lastname").val(),
                     phone: $("#phone").val(),
-                    tickets: tickets,
-                    total: parseInt('<%= total %>')
+                    tickets: object,
+                    total: total
                 };
+                
                 const config = {
                     headers: {
                         "Accept": "application/json",
                         "Content-Type": "application/json"
                     }
                 };
-                axios.post(url, inputs, config)
-                .then((res) => {
-                    let url = res.data.results;
-                    console.log(url);
-                    window.location.href = url;
-                }).catch(function(error){
+                try {
+                    const response = await axios.post(url, inputs, config);
+                    let results = response.data.results;
+                    console.log(results);
+                    btn.attr("disabled", false).text("Proceed To Payment");
+
+                    let handler = PaystackPop.setup({
+                        key: results.key, 
+                        email: results.email,
+                        amount: results.amount * 100, 
+                        currency: 'NGN', // Use GHS for Ghana Cedis or USD for US Dollars
+                        ref: results.reference,
+                        //channels: ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer'],
+                        onClose: function(){
+                            axios.get(
+                                `${baseUrl}/api/v1/transaction/verify?reference=`+response.reference, 
+                                inputs, 
+                                config
+                            ).then((res) => {
+                                let data = res.data;
+                            });
+                        },
+                        callback: function(response){
+                            axios.get(
+                                `${baseUrl}/api/v1/transaction/verify?reference=`+response.reference, 
+                                inputs, 
+                                config
+                            ).then((res) => {
+                                let data = res.data;
+                                console.log(data);
+                            });
+                        }
+                    });
+        
+                    handler.openIframe();
+                }catch (error){
                     let errors = error.response.data.error;
                     if(errors.firstname){
                         $(".error").eq(0).text(errors.firstname);
@@ -154,7 +227,8 @@
                     if(errors.phone){
                         $(".error").eq(3).text(errors.phone);
                     }
-                });
+                    btn.attr("disabled", false).text("Proceed To Payment");
+                }
             });
         });
     </script>

@@ -1,22 +1,5 @@
-const Sequelize = require('sequelize');
-const dbConfig = require('../../config/db-config');
 const {Op} = require('sequelize');
-const sequelize = new Sequelize(
-    dbConfig.DATABASE, 
-    dbConfig.USER, 
-    dbConfig.PASSWORD, 
-    {
-        dialect: dbConfig.DIALECT,
-        host: dbConfig.HOST
-    }
-);
-
-const Ticket = require('./ticket')(sequelize, Sequelize.DataTypes);
-const Category = require('./category')(sequelize, Sequelize.DataTypes);
-const User = require('./user')(sequelize, Sequelize.DataTypes);
-const Attendee = require('./attendee')(sequelize, Sequelize.DataTypes);
-const Transaction = require('./transaction')(sequelize, Sequelize.DataTypes);
-
+const { getCurrentDateTime } = require('../util/helper');
 module.exports = (sequelize, DataTypes) => {
     const Event = sequelize.define('Event', {
         id: {
@@ -40,36 +23,16 @@ module.exports = (sequelize, DataTypes) => {
         description: {type: DataTypes.TEXT, allowNull: false},
         image: {type: DataTypes.STRING, allowNull: false},
         venue: {type: DataTypes.STRING, allowNull: false},
-        date: {type: DataTypes.DATE, allowNull: true}
+        date: {
+            type: DataTypes.DATE, 
+            allowNull: true,
+            get() {
+                const rawValue = this.getDataValue('date');
+                return rawValue ? getCurrentDateTime(rawValue) : null;
+            }
+        }
     },{
         tableName: 'events'
-    })
-
-    Event.belongsTo(Category, {
-        foreignKey: 'category_id',
-        targetKey: 'id',
-        as: "category"
-    });
-    Event.hasMany(Ticket, {
-        foreignKey: 'event_id',
-        targetKey: 'id',
-        as: "tickets"
-    });
-    /*Event.belongsToMany(User, {
-        through: Attendee,
-        foreignKey: 'event_id',
-        otherKey: 'user_id',
-        as: 'attendees', // Alias for the association
-    });*/
-    Event.hasMany(Attendee, {
-        foreignKey: 'event_id',
-        targetKey: 'id',
-        as: "attendees"
-    });
-    Event.hasMany(Transaction, {
-        foreignKey: 'event_id',
-        targetKey: 'id',
-        as: "transactions"
     });
 
     Event.addScope('upcoming', {
@@ -106,6 +69,35 @@ module.exports = (sequelize, DataTypes) => {
             }
         })
         return transactions;
+    }
+
+    Event.associate = models => {
+        Event.belongsTo(models.Category, {
+            foreignKey: 'category_id',
+            targetKey: 'id',
+            as: "category"
+        });
+        Event.hasMany(models.Ticket, {
+            foreignKey: 'event_id',
+            targetKey: 'id',
+            as: "tickets"
+        });
+        /*Event.belongsToMany(User, {
+            through: Attendee,
+            foreignKey: 'event_id',
+            otherKey: 'user_id',
+            as: 'attendees', // Alias for the association
+        });*/
+        Event.hasMany(models.Attendee, {
+            foreignKey: 'event_id',
+            targetKey: 'id',
+            as: "attendees"
+        });
+        Event.hasMany(models.Transaction, {
+            foreignKey: 'event_id',
+            targetKey: 'id',
+            as: "transactions"
+        });
     }
 
     return Event;

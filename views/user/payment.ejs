@@ -1,0 +1,142 @@
+<%- include("layout/header.ejs") %>
+        <section class="" style="margin-top:80px">
+            <div class="container">
+                <div class="row">
+                    <%- include("layout/sidebar.ejs") %>
+                    <div class="col-xl-9 col-lg-9 col-md-8">
+                        <form id="accountData" action="" method="POST">
+                            <div class="row">
+                                <div class="col">
+                                    <label for="bank_name" style="font-weight:bold;font-size:14px">Bank Name <span style="color:red">*</span></label>
+                                    <select
+                                    name="bank_name"
+                                    placeholder="bank_name" 
+                                    id="bank_name"
+                                    class="form-control form-control-border">
+                                        
+                                    </select>
+                                    <span class="error"> </span>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-column" style="font-weight:bold;font-size:14px;margin-top:15px">
+                                <label for="account_number">Account Number <span style="color:red">*</span></label>
+                                <input 
+                                oninput="limitNumberLength()"
+                                type="number" 
+                                id="account_number"
+                                name="account_number"
+                                class="form-control form-control-border" />
+                                <span class="error"> </span>
+                            </div>
+                            <div class="d-flex flex-column border-danger" style="margin-top:15px;font-weight:bold;font-size:14px">
+                                <label for="">Account Name <span style="color:red">*</span></label>
+                                <input 
+                                type="text" 
+                                id="account_name"
+                                name="account_name"
+                                readonly
+                                class="form-control form-control-border" />
+                                <span class="error"> </span>
+                            </div>
+                            <div class="">
+                                <button 
+                                id="submitBtn"
+                                type="button"
+                                disabled
+                                class="btn btn-primary mt-4 rounded-all">
+                                Submit
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <script src="/assets/libs/jquery/dist/jquery.min.js"></script>
+        <script src="/assets/libs/axios/axios.js"></script>
+        <script src="/assets/js/user-sidebar.js"></script>
+        <script>
+            let token = $("meta[name='csrf-token']").attr("content");
+            let baseUrl = $("meta[name='base-url']").attr("content");
+            var authToken = localStorage.getItem('adminToken');
+
+            async function getBanks(){
+                const config = {
+                    headers: {
+                        "Accept": "application/json",
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer "+"<%= user.token %>"
+                    }
+                };
+                let response = await axios.get(`${baseUrl}/api/v1/banks`, config);
+                let banks = response.data?.results;
+                banks.forEach(function(bank, index){
+                    $("#bank_name").append(`
+                        <option value="${bank.code}">${bank.name}</option>
+                    `)
+                })
+            }
+            getBanks();
+
+            function limitNumberLength() {
+                let input = document.getElementById("account_number");
+                if (input.value.length >= 10) {
+                    input.value = input.value.slice(0, 10);
+                    let account = $("#account_number").val();
+                    let code = $("#bank_name").val();
+                    axios.get(`${baseUrl}/api/v1/account/verify/${account}/${code}`)
+                    .then((res) => {
+                        let results = res.data.results;
+                        $("#account_name").val(results?.account_name)
+                        $("#submitBtn").attr("disabled", false);
+                        console.log(results);
+                    });
+                }else{
+                    $("#account_name").val("");
+                    $("#submitBtn").attr("disabled", true);
+                }
+            }
+
+            $("#submitBtn").on("click", function(event){
+                event.preventDefault();
+                var url = $('#accountData').attr('action');
+                let btn = $(this);
+                btn.attr("disabled", true);
+                btn.html(`<img src="/assets/images/loader.gif" id="loader-gif">`);
+                let inputs = {
+                    account_name: $("#account_name").val(),
+                    account_number: $("#account_number").val(),
+                    bank_code: $("#bank_name").val()
+                }
+                const config = {
+                    headers: {
+                        "Accept": "application/json",
+                        "Content-Type": "application/json"
+                    }
+                };
+
+                axios.post(url, inputs, config)
+                .then((res) => {
+                    let results = res.data.results;
+                    console.log(results);
+                    btn.attr("disabled", false);
+                    btn.text("Submit");
+
+                }).catch(function(error){
+                    let errors = error.response.data.error;
+                    if(errors.bank_code){
+                        $(".error").eq(0).text(errors.bank_code);
+                    }
+                    if(errors.account_number){
+                        $(".error").eq(1).text(errors.account_number);
+                    }
+                    if(errors.account_name){
+                        $(".error").eq(2).text(errors.account_name);
+                    }
+                    btn.attr("disabled", false);
+                    btn.text("Submit");
+                });
+            });
+        </script>
+    </body>
+</html>
